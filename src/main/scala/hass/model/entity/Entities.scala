@@ -1,9 +1,11 @@
 package hass.model.entity
 
-import java.util.concurrent.Future
+
 
 import hass.model.service.result.Result
 import hass.model.state.{Off, On, TurnState}
+
+import scala.concurrent.Future
 
 sealed trait Entity {
   def entity_name: String

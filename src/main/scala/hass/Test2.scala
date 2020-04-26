@@ -1,6 +1,6 @@
 package hass
 
-import akka.Done
+/*import akka.Done
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.StatusCodes
@@ -91,3 +91,4 @@ object Test2 extends App {
   //connected.onComplete(println)
   closed.foreach(_ => println("closed"))
 }
+*/

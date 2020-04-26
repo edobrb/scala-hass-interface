@@ -1,6 +1,6 @@
 package hass.model.entity
 
-import java.util.concurrent.Future
+
 
 import hass.controller.Hass
 import hass.model.common.Observable
@@ -8,6 +8,8 @@ import hass.model.event.StateChangedEvent
 import hass.model.service.result.Result
 import hass.model.service.{SwitchToggleService, SwitchTurnService}
 import hass.model.state._
+
+import scala.concurrent.Future
 
 object Switch {
   def apply()(implicit switch_name: sourcecode.Name, hass: Hass): Switch = Switch(switch_name.value)(hass)
@@ -27,9 +29,9 @@ case class Switch(entity_name: String)(implicit hass: Hass) extends TurnableEnti
 
   def state: SwitchState = _state
 
-  override def turn(state: TurnState): Future[Result] = hass callAsync SwitchTurnService(entity_name, state)
+  override def turn(state: TurnState): Future[Result] = hass call SwitchTurnService(entity_name, state)
 
-  override def toggle: Future[Result] = hass callAsync SwitchToggleService(entity_name)
+  override def toggle: Future[Result] = hass call SwitchToggleService(entity_name)
 
   def onChange(f: PartialFunction[TurnState, Unit]): Unit = addObserver(f)
 }

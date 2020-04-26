@@ -6,11 +6,16 @@ import play.api.libs.json.JsValue
 sealed trait Result {
   def success: Boolean
 
-  def raw: JsValue
+  def result: Option[JsValue]
 }
 
-case class ServiceCallResult(success: Boolean, raw: JsValue) extends Result
+case class ServiceCallResult(id:BigDecimal, success: Boolean, result:  Option[JsValue]) extends Result
 
-case class AuthResult(success: Boolean, raw: JsValue) extends Result
+case class FailedParseResult(id:BigDecimal) extends Result{
+  override def success: Boolean = false
 
-case class FetchStateResult(success: Boolean, states: Seq[EntityState[_]], raw: JsValue) extends Result
+  override def result: Option[JsValue] = None
+}
+//case class AuthResult(success: Boolean, raw: JsValue) extends Result
+
+//case class FetchStateResult(success: Boolean, states: Seq[EntityState[_]], raw: JsValue) extends Result
