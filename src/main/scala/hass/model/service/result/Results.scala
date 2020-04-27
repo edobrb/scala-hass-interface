@@ -8,6 +8,9 @@ sealed trait Result {
 
   def result: Option[JsValue]
 }
+object Result {
+  def unapply(result: Result):Option[Boolean] = Some(result.success)
+}
 
 case class ServiceCallResult(id:BigDecimal, success: Boolean, result:  Option[JsValue]) extends Result
 

@@ -29,10 +29,10 @@ class Hass(hassUrl: String) extends Observable[Event] {
           socket ! "{\"id\":" + subscribeEventsId + ",\"type\":\"subscribe_events\"}"
           val eventsFuture = new CompletableFuture[Result]
           pendingRequest += (subscribeEventsId -> eventsFuture)
-          eventsFuture.thenAccept(result => {
-            log inf "Subscribed to all events."
-          })
-
+          eventsFuture.thenAccept {
+            case Result(true) => log inf "Subscribed to all events."
+            case _ => log inf "Subscribed to all events failed."
+          }
 
           val fetchStateId = nextId
           socket ! "{\"id\":" + fetchStateId + ",\"type\":\"get_states\"}"
@@ -46,7 +46,7 @@ class Hass(hassUrl: String) extends Observable[Event] {
                   case None => log err ("parsing error: " + s)
                 }
               })
-              case _ => log err ("unexpected result in get_states ")
+              case _ => log err "unexpected result in get_states"
             }
             entityStates.notify()
             log inf "Fetched all states."
@@ -66,7 +66,6 @@ class Hass(hassUrl: String) extends Observable[Event] {
             case Some(event) => notifyObservers(event)
             case None => log err "Malformed event: " + json
           }
-
 
         case _ => log wrn "Unknown json: " + json
       }
