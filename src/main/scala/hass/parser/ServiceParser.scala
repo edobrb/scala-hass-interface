@@ -5,7 +5,9 @@ import hass.model.service.{LightTurnOffService, LightTurnOnService, Service}
 import hass.parser.CommonParser._
 import play.api.libs.json.JsValue
 
-object ServiceParser {
+object ServiceParser extends JsonParser[Service] {
+
+  override def apply(data: JsValue): Option[Service] = first(parsers)(data)
 
   def parsers: Seq[JsonParser[Service]] = Seq[JsonParser[Service]](
     lightTurnOffServiceParser,

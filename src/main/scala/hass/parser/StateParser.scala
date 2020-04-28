@@ -7,7 +7,10 @@ import hass.parser.CommonParser._
 import hass.parser.ImplicitReads._
 import play.api.libs.json._
 
-object StateParser {
+object StateParser extends JsonParser[EntityState[_]] {
+
+  override def apply(data: JsValue): Option[EntityState[_]] = first(parsers)(data)
+
   def parsers: Seq[JsonParser[EntityState[_]]] = Seq[JsonParser[EntityState[_]]](
     sensorStateParser,
     switchStateParser,
@@ -15,9 +18,6 @@ object StateParser {
     inputBooleanStateParser,
     inputDateTimeStateParser,
     unknownEntityParser)
-
-  def parse(data: JsValue): Option[EntityState[_]] =
-    for (state <- first(parsers)(data)) yield state
 
   def switchStateParser: JsonParser[SwitchState] =
     expectedStateParser(Switch.domain, SwitchState.apply)

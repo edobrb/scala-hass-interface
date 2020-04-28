@@ -72,7 +72,6 @@ case class LightTurnOffService(override val entity_name: String, attributes: Map
   def transition(v: Int): LightTurnOffService = LightTurnOffService(entity_name, Map("transition" -> JsNumber(v)))
 }
 
-//TODO: entity id? maybe entity name
 case class LightTurnOnService(override val entity_name: String, attributes: Map[String, JsValue] = Map()) extends TurnService with LightService {
   override def turnState: TurnState = On
 

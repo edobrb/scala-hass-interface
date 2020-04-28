@@ -40,7 +40,7 @@ class Hass(hassUrl: String) extends Observable[Event] {
           future.thenAccept(result => entityStates.synchronized {
             result.result match {
               case Some(JsArray(v)) => v.foreach(s => {
-                StateParser.parse(s) match {
+                StateParser(s) match {
                   case Some(state) => entityStates += (state.entity_id -> state)
                   case None => log err ("parsing error: " + s)
                 }
@@ -55,13 +55,13 @@ class Hass(hassUrl: String) extends Observable[Event] {
           json \ "id" match {
             case JsDefined(JsNumber(id)) =>
               if (pendingRequest.isDefinedAt(id.intValue)) {
-                pendingRequest(id.intValue).complete(ResultParser.parse(json).getOrElse(Result.parsingError))
+                pendingRequest(id.intValue).complete(ResultParser(json).getOrElse(Result.parsingError))
                 pendingRequest -= id.intValue
               }
           }
 
         case JsDefined(JsString("event")) =>
-          EventParser.parse(json) match {
+          EventParser(json) match {
             case Some(event) => notifyObservers(event)
             case None => log err "Malformed event: " + json
           }

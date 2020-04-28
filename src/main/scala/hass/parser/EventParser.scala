@@ -5,9 +5,9 @@ import hass.model.event.{Event, ServiceCallEvent, StateChangedEvent, UnknownEven
 import hass.parser.CommonParser._
 import play.api.libs.json._
 
-object EventParser {
+object EventParser extends JsonParser[Event] {
 
-  def parse(data: JsValue): Option[Event] = first(parsers)(data)
+  override def apply(data: JsValue): Option[Event] = first(parsers)(data)
 
   def parsers: Seq[JsonParser[Event]] = Seq[JsonParser[Event]](
     stateChangedEventParser,
@@ -44,7 +44,7 @@ object EventParser {
          entityId <- str("entity_id")(eventData);
          oldStateData <- json("old_state")(eventData);
          newStateData <- json("new_state")(eventData);
-         oldState <- StateParser.parse(oldStateData);
-         newState <- StateParser.parse(newStateData))
+         oldState <- StateParser(oldStateData);
+         newState <- StateParser(newStateData))
       yield StateChangedEvent(entityId, oldState, newState, timeFired, origin)
 }

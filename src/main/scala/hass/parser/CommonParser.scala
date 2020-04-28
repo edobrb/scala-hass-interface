@@ -6,6 +6,7 @@ import hass.parser.ImplicitReads._
 import play.api.libs.json._
 
 object CommonParser {
+
   type Parser[-I, +O] = I => Option[O]
   type JsonParser[+O] = Parser[JsValue, O]
 

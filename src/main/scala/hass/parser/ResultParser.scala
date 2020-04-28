@@ -5,8 +5,9 @@ import hass.parser.CommonParser._
 import play.api.libs.json.JsValue
 
 
-object ResultParser {
-  def parse(data: JsValue): Option[Result] = parser(data)
+object ResultParser extends JsonParser[Result] {
+
+  override def apply(data: JsValue): Option[Result] = parser(data)
 
   def parser: JsonParser[Result] = data =>
     for ("result" <- str("type")(data);
