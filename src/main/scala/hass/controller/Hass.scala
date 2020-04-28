@@ -117,5 +117,9 @@ class Hass(hassUrl: String) extends Observable[Event] {
 
   def onEvent(f: PartialFunction[Event, Unit]): Unit = addObserver(f)
 
+  def onStateChange(f: PartialFunction[EntityState[_], Unit]): Unit = addObserver({
+    case StateChangedEvent(_, _, newState, _, _) if f.isDefinedAt(newState) => f(newState)
+  })
+
   def close(): Unit = client.shutdownSync()
 }

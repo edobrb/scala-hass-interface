@@ -10,6 +10,7 @@ sealed trait Event {
   def origin: String
 }
 
+
 case class UnknownEvent(jsValue: JsValue, timeFired: DateTime, origin: String) extends Event
 
 case class StateChangedEvent[S <: EntityState[_]](entity_id: String, oldState: S, newState: S, timeFired: DateTime, origin: String) extends Event

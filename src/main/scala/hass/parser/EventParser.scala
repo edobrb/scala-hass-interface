@@ -17,6 +17,7 @@ object EventParser {
       (jsValue \ "event" \ "event_type" match {
         case JsDefined(JsString("state_changed")) =>
           parseStateChangedEvent((jsValue \ "event" \ "data").get, timeFired, origin)
+          //TODO: case "call_service" ...
         case _ => None
       }) match {
         case Some(value) =>

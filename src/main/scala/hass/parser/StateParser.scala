@@ -3,7 +3,8 @@ package hass.parser
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.state._
 import hass.parser.ImplicitReads._
-import play.api.libs.json.{JsPath, JsValue, Reads}
+import org.joda.time.LocalTime
+import play.api.libs.json._
 
 import scala.util.Try
 
@@ -13,6 +14,8 @@ object StateParser {
       case "switch" => parseSwitchState(jsValue)
       case "light" => parseLightState(jsValue)
       case "sensor" => parseSensorState(jsValue)
+      case "input_boolean" => parseInputBooleanState(jsValue)
+      case "input_datetime" => parseInputDateTimeState(jsValue)
       case _ => parseUnknownEntityState(jsValue)
     }
   }.toOption
@@ -37,11 +40,24 @@ object StateParser {
       SensorState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
   }
 
-  private def parseStateAttributes[T](jsValue: JsValue)(implicit reads: Reads[T]): Option[(String, T, DateTime, DateTime, Option[JsValue])] = Try {
+  private def parseInputBooleanState(jsValue: JsValue): InputBooleanState = parseStateAttributes[TurnState](jsValue) match {
+    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
+      InputBooleanState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
+  }
+
+  private def parseInputDateTimeState(jsValue: JsValue): InputDateTimeState = parseStateAttributes[Either[DateTime, LocalTime]](jsValue) match {
+    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
+      InputDateTimeState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
+  }
+
+  private def parseStateAttributes[T](jsValue: JsValue)(implicit reads: Reads[T]): Option[(String, T, DateTime, DateTime, Option[JsObject])] = Try {
     val entityId = (JsPath \ "entity_id").read[String].reads(jsValue).get
     val lastChanged = (JsPath \ "last_changed").read[DateTime].reads(jsValue).get
     val lastUpdated = (JsPath \ "last_updated").read[DateTime].reads(jsValue).get
     val state = (JsPath \ "state").read[T].reads(jsValue).get
-    (entityId, state, lastChanged, lastUpdated, (jsValue \ "attributes").toOption)
+    (entityId, state, lastChanged, lastUpdated, jsValue \ "attributes" match {
+      case JsDefined(obj: JsObject) => Some(obj)
+      case _ => None
+    })
   }.toOption
 }
