@@ -2,8 +2,7 @@ package hass.model.entity
 
 
 import hass.controller.Hass
-import hass.model.service.result.Result
-import hass.model.service.{SwitchToggleService, SwitchTurnService}
+import hass.model.service.{Result, SwitchToggleService, SwitchTurnService}
 import hass.model.state._
 
 import scala.concurrent.Future

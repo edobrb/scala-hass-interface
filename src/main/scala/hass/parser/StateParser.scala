@@ -1,63 +1,55 @@
 package hass.parser
 
 import com.github.nscala_time.time.Imports.DateTime
+import hass.model.entity._
 import hass.model.state._
+import hass.parser.CommonParser._
 import hass.parser.ImplicitReads._
-import org.joda.time.LocalTime
 import play.api.libs.json._
 
-import scala.util.Try
-
 object StateParser {
-  def parse(jsValue: JsValue): Option[EntityState[_]] = Try {
-    parseStateAttributes[String](jsValue).get._1.split('.')(0) match {
-      case "switch" => parseSwitchState(jsValue)
-      case "light" => parseLightState(jsValue)
-      case "sensor" => parseSensorState(jsValue)
-      case "input_boolean" => parseInputBooleanState(jsValue)
-      case "input_datetime" => parseInputDateTimeState(jsValue)
-      case _ => parseUnknownEntityState(jsValue)
-    }
-  }.toOption
+  def parsers: Seq[JsValue => Option[EntityState[_]]] =
+    Seq(sensorStateParser,
+      switchStateParser,
+      lightStateParser,
+      inputBooleanStateParser,
+      inputDateTimeStateParser,
+      unknownEntityParser)
 
-  private def parseUnknownEntityState(jsValue: JsValue): UnknownEntityState = parseStateAttributes[String](jsValue) match {
-    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
-      UnknownEntityState(entityId, state, lastChanged, lastUpdated, attributes)
+  def parse(data: JsValue): Option[EntityState[_]] =
+    for (state <- first(parsers)(data)) yield state
+
+  def switchStateParser(data: JsValue): Option[SwitchState] =
+    expectedStateParser(Switch.domain, SwitchState.apply, data)
+
+  def lightStateParser(data: JsValue): Option[LightState] =
+    expectedStateParser(Light.domain, LightState.apply, data)
+
+  def sensorStateParser(data: JsValue): Option[SensorState] =
+    expectedStateParser(Sensor.domain, SensorState.apply, data)
+
+  def inputBooleanStateParser(data: JsValue): Option[InputBooleanState] =
+    expectedStateParser(InputBoolean.domain, InputBooleanState.apply, data)
+
+  def inputDateTimeStateParser(data: JsValue): Option[InputDateTimeState] =
+    expectedStateParser(InputDateTime.domain, InputDateTimeState.apply, data)
+
+  def expectedStateParser[T, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K, data: JsValue)(implicit reads: Reads[T]): Option[K] =
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[T](data);
+         if domain == expectedDomain)
+      yield f(entityName, state, lastChanged, lastUpdated, attributes)
+
+  def stateParser[T](data: JsValue)(implicit reads: Reads[T]): Option[(String, String, T, DateTime, DateTime, Option[JsObject])] = {
+    for (entityId <- str("entity_id")(data);
+         (domain, name) <- entityIds(entityId);
+         lastChanged <- datetime("last_changed")(data);
+         lastUpdated <- datetime("last_updated")(data);
+         state <- value[T]("state")(data);
+         attributes = jsonObj("attributes")(data))
+      yield (domain, name, state, lastChanged, lastUpdated, attributes)
   }
 
-  private def parseSwitchState(jsValue: JsValue): SwitchState = parseStateAttributes[TurnState](jsValue) match {
-    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
-      SwitchState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
-  }
-
-  private def parseLightState(jsValue: JsValue): LightState = parseStateAttributes[TurnState](jsValue) match {
-    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
-      LightState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
-  }
-
-  private def parseSensorState(jsValue: JsValue): SensorState = parseStateAttributes[String](jsValue) match {
-    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
-      SensorState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
-  }
-
-  private def parseInputBooleanState(jsValue: JsValue): InputBooleanState = parseStateAttributes[TurnState](jsValue) match {
-    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
-      InputBooleanState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
-  }
-
-  private def parseInputDateTimeState(jsValue: JsValue): InputDateTimeState = parseStateAttributes[Either[DateTime, LocalTime]](jsValue) match {
-    case Some((entityId, state, lastChanged, lastUpdated, attributes)) =>
-      InputDateTimeState(entityId.split('.')(1), state, lastChanged, lastUpdated, attributes)
-  }
-
-  private def parseStateAttributes[T](jsValue: JsValue)(implicit reads: Reads[T]): Option[(String, T, DateTime, DateTime, Option[JsObject])] = Try {
-    val entityId = (JsPath \ "entity_id").read[String].reads(jsValue).get
-    val lastChanged = (JsPath \ "last_changed").read[DateTime].reads(jsValue).get
-    val lastUpdated = (JsPath \ "last_updated").read[DateTime].reads(jsValue).get
-    val state = (JsPath \ "state").read[T].reads(jsValue).get
-    (entityId, state, lastChanged, lastUpdated, jsValue \ "attributes" match {
-      case JsDefined(obj: JsObject) => Some(obj)
-      case _ => None
-    })
-  }.toOption
+  private def unknownEntityParser(data: JsValue): Option[UnknownEntityState] =
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[String](data))
+      yield UnknownEntityState(domain + "." + entityName, state, lastChanged, lastUpdated, attributes)
 }

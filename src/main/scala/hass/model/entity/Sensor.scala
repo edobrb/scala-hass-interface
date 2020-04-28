@@ -3,8 +3,7 @@ package hass.model.entity
 import hass.controller.Hass
 import hass.model.common.Observable
 import hass.model.event.StateChangedEvent
-import hass.model.service.result.Result
-import hass.model.service.{LightToggleService, LightTurnOffService, LightTurnOnService}
+import hass.model.service.{LightToggleService, LightTurnOffService, LightTurnOnService, Result}
 import hass.model.state.{LightState, SensorState, TurnState}
 
 import scala.concurrent.Future

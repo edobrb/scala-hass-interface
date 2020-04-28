@@ -16,9 +16,9 @@ object Test extends App {
   val lampada_edo = Light()
   val irr_davanti = Switch()
   val consumo_garage = Sensor()
-  /*consumo_garage.onStateValueChange({
+  consumo_garage.onStateValueChange({
     case s =>println(s)
-  })*/
+  })
 
   val prova_data_tempo = InputDateTime()
   prova_data_tempo.onStateValueChange {
@@ -29,7 +29,7 @@ object Test extends App {
   /*lampada_edo.onStateChange {
     case LightState(_, _, _, _, attributes) => println(attributes)
   }*/
-  //irr_davanti.turnOn.onComplete(println)
+  irr_davanti.toggle.onComplete(println)
 
   hass.onEvent {
     /*case UnknownEvent(jsValue, timeFired, origin) => println("Unknown: " + jsValue)
@@ -42,12 +42,12 @@ object Test extends App {
     case e:ServiceCallEvent => println(e)
   }
 
-  /*hass.onStateChange {
+  hass.onStateChange {
     case UnknownEntityState(entity_id, state, lastChanged, lastUpdated, attributes) => println("Unknown: " + entity_id + " " + state)
     case InputBooleanState(entity_name, state, lastChanged, lastUpdated, attributes) =>  println(s"${entity_name} = ${state} (${lastUpdated}) ($lastChanged)")
     case l: LightState =>  println(s"${l.entity_name} = ${l.state} (${l.brightness})")
     case l:InputDateTimeState => println(s"${l.entity_name} = ${l.state} (${l.lastChanged}) (${l.hasDate}, ${l.hasTime})")
     //case EntityState(entity_id, state, lastChanged, lastUpdated, attributes) => println("Generic state: " + entity_id + " " + state)
-  }*/
+  }
 
 }

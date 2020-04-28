@@ -5,8 +5,7 @@ import java.util.concurrent.{CompletableFuture, CompletionStage, Future}
 import com.github.andyglow.websocket.{Websocket, WebsocketClient}
 import hass.model.common.Observable
 import hass.model.event.{Event, StateChangedEvent}
-import hass.model.service.Service
-import hass.model.service.result.{FailedParseResult, Result, ServiceCallResult}
+import hass.model.service.{Result, Service}
 import hass.model.state.EntityState
 import hass.parser.{EventParser, ResultParser, StateParser}
 import play.api.libs.json._
@@ -30,7 +29,7 @@ class Hass(hassUrl: String) extends Observable[Event] {
           val eventsFuture = new CompletableFuture[Result]
           pendingRequest += (subscribeEventsId -> eventsFuture)
           eventsFuture.thenAccept {
-            case Result(true) => log inf "Subscribed to all events."
+            case Result(true, _) => log inf "Subscribed to all events."
             case _ => log inf "Subscribed to all events failed."
           }
 
@@ -56,7 +55,7 @@ class Hass(hassUrl: String) extends Observable[Event] {
           json \ "id" match {
             case JsDefined(JsNumber(id)) =>
               if (pendingRequest.isDefinedAt(id.intValue)) {
-                pendingRequest(id.intValue).complete(ResultParser.parse(json).getOrElse(FailedParseResult(id)))
+                pendingRequest(id.intValue).complete(ResultParser.parse(json).getOrElse(Result.parsingError))
                 pendingRequest -= id.intValue
               }
           }
