@@ -1,10 +1,10 @@
 import hass.controller.Hass
-import hass.model.entity.{Light, Switch}
-import hass.model.event.{SensorStateChangedEvent, SwitchStateChangedEvent, UnknownEvent}
-import hass.model.state.{InputBooleanState, InputDateTimeState, LightState, Off, On, UnknownEntityState}
-import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
+import hass.model.entity.{InputDateTime, Light, Sensor, Switch}
+import hass.model.event.{LightTurnOnServiceCallEvent, ServiceCallEvent, UnknownEvent}
+import hass.model.service.LightTurnOnService
+import hass.model.state._
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 object Test extends App {
 
@@ -15,34 +15,39 @@ object Test extends App {
 
   val lampada_edo = Light()
   val irr_davanti = Switch()
+  val consumo_garage = Sensor()
+  /*consumo_garage.onStateValueChange({
+    case s =>println(s)
+  })*/
 
-
-  //lampada_edo.turnOn.onComplete(println)
-
-  lampada_edo.onTurnStateChange {
-    case Off => println("Spenta!")
-    case On => println("Accesa!")
-  }
-
-  lampada_edo.onStateChange {
-    case LightState(_,_,_,_,attributes) => println(attributes)
+  val prova_data_tempo = InputDateTime()
+  prova_data_tempo.onStateValueChange {
+    case Left(value) => println(value)
   }
 
 
-  /*hass.onEvent {
-    case UnknownEvent(jsValue, timeFired, origin) => println("Unknown: " + jsValue)
+  /*lampada_edo.onStateChange {
+    case LightState(_, _, _, _, attributes) => println(attributes)
+  }*/
+  //irr_davanti.turnOn.onComplete(println)
+
+  hass.onEvent {
+    /*case UnknownEvent(jsValue, timeFired, origin) => println("Unknown: " + jsValue)
     //case SwitchStateChangedEvent(entity_id, oldState, newState, timeFired, origin) => println(s"${newState.entity_name} -> ${newState.state}")
     //case SensorStateChangedEvent("consumo_casa", oldState, newState, timeFired, origin) => println(s"${newState.entity_name} = ${newState.state} (${newState.lastUpdated})")
     //case SensorStateChangedEvent("consumo_garage", oldState, newState, timeFired, origin) => println(s"${newState.entity_name} = ${newState.state} (${newState.lastUpdated})")
 
-    case v => //println(v)
-  }*/
+    case LightTurnOnServiceCallEvent(service, _, _) => println(service)
+    case ServiceCallEvent(s: LightTurnOnService, _, _) => ???*/
+    case e:ServiceCallEvent => println(e)
+  }
 
-  hass.onStateChange {
+  /*hass.onStateChange {
     case UnknownEntityState(entity_id, state, lastChanged, lastUpdated, attributes) => println("Unknown: " + entity_id + " " + state)
     case InputBooleanState(entity_name, state, lastChanged, lastUpdated, attributes) =>  println(s"${entity_name} = ${state} (${lastUpdated}) ($lastChanged)")
     case l: LightState =>  println(s"${l.entity_name} = ${l.state} (${l.brightness})")
     case l:InputDateTimeState => println(s"${l.entity_name} = ${l.state} (${l.lastChanged}) (${l.hasDate}, ${l.hasTime})")
-  }
+    //case EntityState(entity_id, state, lastChanged, lastUpdated, attributes) => println("Generic state: " + entity_id + " " + state)
+  }*/
 
 }

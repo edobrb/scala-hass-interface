@@ -3,7 +3,7 @@ package hass.parser
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.event.{Event, UnknownEvent}
 import hass.model.service.result.{Result, ServiceCallResult}
-import hass.parser.EventParser.parseStateChangedEvent
+
 import play.api.libs.json.{JsDefined, JsPath, JsString, JsValue}
 
 import scala.util.Try

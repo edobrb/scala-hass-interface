@@ -1,5 +1,6 @@
 package hass.model.service
 
+import hass.model.entity.{Light, Switch}
 import hass.model.state.{Off, On, TurnState}
 import play.api.libs.json._
 
@@ -38,43 +39,46 @@ sealed trait ToggleService extends Service {
 }
 
 trait EntityService extends Service {
-  def entity_id: String
-
   override def materialize(id: Long): JsObject = materialize(id, Map())
 
   def materialize(id: Long, attributes: Map[String, JsValue]): JsObject = {
     val serviceData = attributes.foldLeft(JsObject(Seq()))({
       case (obj, att) => obj + att
-    }) + ("entity_id" -> JsString(s"$domain.$entity_id"))
+    }) + ("entity_id" -> JsString(s"$entity_id"))
     super.materialize(id) + ("service_data" -> serviceData)
   }
+
+  def entity_name: String
+
+  def entity_id: String = s"$domain.$entity_name"
 }
 
 trait SwitchService extends EntityService {
-  override def domain: String = "switch"
+  override def domain: String = Switch.domain
 }
 trait LightService extends EntityService {
-  override def domain: String = "light"
+  override def domain: String = Light.domain
 }
 
-case class SwitchTurnService(override val entity_id: String, override val turnState: TurnState) extends TurnService with SwitchService
+case class SwitchTurnService(override val entity_name: String, override val turnState: TurnState) extends TurnService with SwitchService
 
-case class SwitchToggleService(override val entity_id: String) extends ToggleService with SwitchService
+case class SwitchToggleService(override val entity_name: String) extends ToggleService with SwitchService
 
-case class LightToggleService(override val entity_id: String) extends ToggleService with LightService
+case class LightToggleService(override val entity_name: String) extends ToggleService with LightService
 
-case class LightTurnOffService(override val entity_id: String, attributes: Map[String, JsValue] = Map()) extends TurnService with LightService {
+case class LightTurnOffService(override val entity_name: String, attributes: Map[String, JsValue] = Map()) extends TurnService with LightService {
   override def turnState: TurnState = Off
 
-  def transition(v: Int): LightTurnOffService = LightTurnOffService(entity_id, Map("transition" -> JsNumber(v)))
+  def transition(v: Int): LightTurnOffService = LightTurnOffService(entity_name, Map("transition" -> JsNumber(v)))
 }
 
-case class LightTurnOnService(override val entity_id: String, attributes: Map[String, JsValue] = Map()) extends TurnService with LightService {
+//TODO: entity id? maybe entity name
+case class LightTurnOnService(override val entity_name: String, attributes: Map[String, JsValue] = Map()) extends TurnService with LightService {
   override def turnState: TurnState = On
 
   override def materialize(id: Long): JsObject = materialize(id, attributes)
 
-  private def withAttribute2(attribute: (String, JsValue)): LightTurnOnService = LightTurnOnService(entity_id, attributes ++ Map(attribute))
+  def withAttribute2(attribute: (String, JsValue)): LightTurnOnService = LightTurnOnService(entity_name, attributes ++ Map(attribute))
 
   def withAttribute[T: Writes](attribute: (String, T)): LightTurnOnService = attribute match {
     case (name, value) => withAttribute2(name -> Json.toJson(value))
