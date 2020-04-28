@@ -29,7 +29,7 @@ object Test extends App {
   /*lampada_edo.onStateChange {
     case LightState(_, _, _, _, attributes) => println(attributes)
   }*/
-  irr_davanti.toggle.onComplete(println)
+  //irr_davanti.toggle.onComplete(println)
 
   hass.onEvent {
     /*case UnknownEvent(jsValue, timeFired, origin) => println("Unknown: " + jsValue)

@@ -8,48 +8,47 @@ import hass.parser.ImplicitReads._
 import play.api.libs.json._
 
 object StateParser {
-  def parsers: Seq[JsValue => Option[EntityState[_]]] =
-    Seq(sensorStateParser,
-      switchStateParser,
-      lightStateParser,
-      inputBooleanStateParser,
-      inputDateTimeStateParser,
-      unknownEntityParser)
+  def parsers: Seq[JsonParser[EntityState[_]]] = Seq[JsonParser[EntityState[_]]](
+    sensorStateParser,
+    switchStateParser,
+    lightStateParser,
+    inputBooleanStateParser,
+    inputDateTimeStateParser,
+    unknownEntityParser)
 
   def parse(data: JsValue): Option[EntityState[_]] =
     for (state <- first(parsers)(data)) yield state
 
-  def switchStateParser(data: JsValue): Option[SwitchState] =
-    expectedStateParser(Switch.domain, SwitchState.apply, data)
+  def switchStateParser: JsonParser[SwitchState] =
+    expectedStateParser(Switch.domain, SwitchState.apply)
 
-  def lightStateParser(data: JsValue): Option[LightState] =
-    expectedStateParser(Light.domain, LightState.apply, data)
+  def lightStateParser: JsonParser[LightState] =
+    expectedStateParser(Light.domain, LightState.apply)
 
-  def sensorStateParser(data: JsValue): Option[SensorState] =
-    expectedStateParser(Sensor.domain, SensorState.apply, data)
+  def sensorStateParser: JsonParser[SensorState] =
+    expectedStateParser(Sensor.domain, SensorState.apply)
 
-  def inputBooleanStateParser(data: JsValue): Option[InputBooleanState] =
-    expectedStateParser(InputBoolean.domain, InputBooleanState.apply, data)
+  def inputBooleanStateParser: JsonParser[InputBooleanState] =
+    expectedStateParser(InputBoolean.domain, InputBooleanState.apply)
 
-  def inputDateTimeStateParser(data: JsValue): Option[InputDateTimeState] =
-    expectedStateParser(InputDateTime.domain, InputDateTimeState.apply, data)
+  def inputDateTimeStateParser: JsonParser[InputDateTimeState] =
+    expectedStateParser(InputDateTime.domain, InputDateTimeState.apply)
 
-  def expectedStateParser[T, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K, data: JsValue)(implicit reads: Reads[T]): Option[K] =
-    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[T](data);
+  def unknownEntityParser: JsonParser[UnknownEntityState] = data =>
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[String](implicitly[Reads[String]])(data))
+      yield UnknownEntityState(domain + "." + entityName, state, lastChanged, lastUpdated, attributes)
+
+  def expectedStateParser[T: Reads, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K): JsonParser[K] = data =>
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[T](implicitly[Reads[T]])(data)
          if domain == expectedDomain)
       yield f(entityName, state, lastChanged, lastUpdated, attributes)
 
-  def stateParser[T](data: JsValue)(implicit reads: Reads[T]): Option[(String, String, T, DateTime, DateTime, Option[JsObject])] = {
+  def stateParser[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
     for (entityId <- str("entity_id")(data);
          (domain, name) <- entityIds(entityId);
          lastChanged <- datetime("last_changed")(data);
          lastUpdated <- datetime("last_updated")(data);
-         state <- value[T]("state")(data);
+         state <- value[T]("state")(implicitly[Reads[T]])(data);
          attributes = jsonObj("attributes")(data))
       yield (domain, name, state, lastChanged, lastUpdated, attributes)
-  }
-
-  private def unknownEntityParser(data: JsValue): Option[UnknownEntityState] =
-    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[String](data))
-      yield UnknownEntityState(domain + "." + entityName, state, lastChanged, lastUpdated, attributes)
 }

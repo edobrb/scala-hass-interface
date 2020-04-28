@@ -1,28 +1,30 @@
 package hass.parser
 
+import hass.model.entity.Light
 import hass.model.service.{LightTurnOffService, LightTurnOnService, Service}
 import hass.parser.CommonParser._
 import play.api.libs.json.JsValue
 
 object ServiceParser {
 
-  def parsers: Seq[JsValue => Option[Service]] = Seq(lightTurnOffServiceParser, lightTurnOnServiceParser)
+  def parsers: Seq[JsonParser[Service]] = Seq[JsonParser[Service]](
+    lightTurnOffServiceParser,
+    lightTurnOnServiceParser)
 
-  def lightTurnOnServiceParser(data: JsValue): Option[Service] = {
-    for ("light" <- str("domain")(data);
-         "turn_on" <- str("service")(data);
-         serviceData <- jsonObj("service_data")(data);
-         entityId <- str("entity_id")(serviceData);
-         attributes <- Some(serviceData.fields.filter(_._1 != "entity_id").toMap)
-         ) yield LightTurnOnService(entityId.split('.')(1), attributes)
-  }
+  def lightTurnOnServiceParser: JsonParser[LightTurnOnService] =
+    expectedServiceParser(Light.domain, "turn_on", LightTurnOnService.apply)
 
-  def lightTurnOffServiceParser(data: JsValue): Option[Service] = {
-    for ("light" <- str("domain")(data);
-         "turn_off" <- str("service")(data);
-         serviceData <- jsonObj("service_data")(data);
-         entityId <- str("entity_id")(serviceData);
-         attributes <- Some(serviceData.fields.filter(_._1 != "entity_id").toMap)
-         ) yield LightTurnOffService(entityId.split('.')(1), attributes)
-  }
+  def lightTurnOffServiceParser: JsonParser[LightTurnOffService] =
+    expectedServiceParser(Light.domain, "turn_off", LightTurnOffService.apply)
+
+  def expectedServiceParser[T](expectedDomain: String, expectedService: String, f: (String, Map[String, JsValue]) => T): JsonParser[T] =
+    data => for (domain <- str("domain")(data)
+                 if domain == expectedDomain;
+                 service <- str("service")(data)
+                 if service == expectedService;
+                 serviceData <- jsonObj("service_data")(data);
+                 entityId <- str("entity_id")(serviceData);
+                 (_, entityName) <- entityIds(entityId);
+                 attributes = serviceData.fields.filter(_._1 != "entity_id").toMap
+                 ) yield f(entityName, attributes)
 }

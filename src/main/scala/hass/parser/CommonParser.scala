@@ -6,33 +6,34 @@ import hass.parser.ImplicitReads._
 import play.api.libs.json._
 
 object CommonParser {
-  type Parser[T] = JsValue => Option[T]
+  type Parser[-I, +O] = I => Option[O]
+  type JsonParser[+O] = Parser[JsValue, O]
 
   implicit def fromJsLookupResultToOption(res: JsLookupResult): Option[JsValue] = res match {
     case JsDefined(value) => Some(value)
     case _ => None
   }
 
-  def json(name: String)(implicit data: JsValue): Option[JsValue] = data \ name
+  def json(name: String): JsonParser[JsValue] = _ \ name
 
-  def json2(name: String): Parser[JsValue] = _ \ name
+  def value[T: Reads](name: String): JsonParser[T] = data => json(name)(data) flatMap (_.asOpt[T])
 
-  def value[T: Reads](name: String)(data: JsValue): Option[T] = json(name)(data) flatMap (_.asOpt[T])
+  def str(name: String): JsonParser[String] = data => json(name)(data) flatMap (_.asOpt[String])
 
-  def str(name: String)(implicit data: JsValue): Option[String] = json(name) flatMap (_.asOpt[String])
+  def number(name: String): JsonParser[BigDecimal] = data => json(name)(data) flatMap (_.asOpt[BigDecimal])
 
-  def number(name: String)(implicit data: JsValue): Option[BigDecimal] = json(name) flatMap (_.asOpt[BigDecimal])
+  def long(name: String): JsonParser[Long] = data => json(name)(data) flatMap (_.asOpt[Long])
 
-  def long(name: String)(implicit data: JsValue): Option[Long] = json(name) flatMap (_.asOpt[Long])
+  def bool(name: String): JsonParser[Boolean] = data => json(name)(data) flatMap (_.asOpt[Boolean])
 
-  def bool(name: String)(implicit data: JsValue): Option[Boolean] = json(name) flatMap (_.asOpt[Boolean])
+  def datetime(name: String): JsonParser[DateTime] = data => json(name)(data) map (_.as[DateTime])
 
-  def jsonObj(name: String)(implicit data: JsValue): Option[JsObject] = json(name) match {
+  def jsonObj(name: String): JsonParser[JsObject] = data => json(name)(data) match {
     case Some(value: JsObject) => Some(value)
     case _ => None
   }
 
-  def entityIds(entityId: String): Option[(String, String)] = {
+  def entityIds: Parser[String, (String, String)] = entityId => {
     val spl = entityId.split('.')
     if (spl.length == 2) {
       Some((spl(0), spl(1)))
@@ -41,10 +42,7 @@ object CommonParser {
     }
   }
 
-  def datetime(name: String)(implicit data: JsValue): Option[DateTime] = json(name) map (_.as[DateTime])
-
-  def first[I, O](parsers: Seq[I => Option[O]])(implicit input: I): Option[O] =
+  def first[I, O](parsers: Seq[I => Option[O]]): Parser[I, O] = input =>
     (for (parser <- parsers;
           result <- parser(input)) yield result).headOption
-
 }

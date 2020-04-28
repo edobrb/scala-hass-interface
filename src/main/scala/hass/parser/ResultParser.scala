@@ -6,10 +6,11 @@ import play.api.libs.json.JsValue
 
 
 object ResultParser {
-  def parse(data: JsValue): Option[Result] = {
+  def parse(data: JsValue): Option[Result] = parser(data)
+
+  def parser: JsonParser[Result] = data =>
     for ("result" <- str("type")(data);
          success <- bool("success")(data);
          result = json("result")(data))
       yield Result(success, result)
-  }
 }
