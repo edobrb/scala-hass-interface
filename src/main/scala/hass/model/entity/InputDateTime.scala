@@ -2,7 +2,7 @@ package hass.model.entity
 
 import hass.controller.Hass
 import hass.model.MetaDomain
-import hass.model.Types.Domain
+import hass.model.Types.DomainType
 import hass.model.state.InputDateTimeState
 import org.joda.time.{DateTime, LocalTime}
 
@@ -13,4 +13,4 @@ object InputDateTime extends MetaDomain {
 }
 
 case class InputDateTime(entity_name: String)(implicit hass: Hass)
-  extends StatefulEntity[Either[DateTime, LocalTime], InputDateTimeState]() with InputDateTime.DomainMeta
+  extends StatefulEntity[Either[DateTime, LocalTime], InputDateTimeState]() with InputDateTime.Domain

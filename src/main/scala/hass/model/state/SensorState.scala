@@ -8,7 +8,7 @@ import scala.util.Try
 
 
 case class SensorState(override val entity_name: String, state: String, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject])
-  extends EntityState[String] with Sensor.DomainMeta {
+  extends EntityState[String] with Sensor.Domain {
 
   private def tryState[T](r: => T): Option[T] = Try(r).toOption
 

@@ -5,7 +5,7 @@ import hass.controller.Hass
 import hass.model.MetaDomain
 import hass.model.common.Observable
 import hass.model.event.StateChangedEvent
-import hass.model.service.Result
+import hass.model.service.{Result, Service}
 import hass.model.state._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,18 +36,32 @@ abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass
   }
 }
 
-trait TurnableEntity extends Entity {
-  def turnOn: Future[Result]
+trait Turnable[On <: Service, Off <: Service, Toggle <: Service] {
+  def onService: On
 
-  def turnOff: Future[Result]
+  def offService: Off
+
+  def toggleService: Toggle
+
+  def hass: Hass
+
+
+  def turnOn(f: On => On = identity): Future[Result] = hass call f(onService)
+
+  /**
+   * Turns off the light by calling LightTurnOffService.
+   * @param f will be applied to the default LightTurnOffService. Ex: turnOff(_.transition(2))
+   * @return the future result of the service call
+   */
+  def turnOff(f: Off => Off = identity): Future[Result] = hass call f(offService)
 
   def turn(state: TurnState): Future[Result] = state match {
-    case On => turnOn
-    case Off => turnOff
+    case On => turnOn()
+    case Off => turnOff()
     case Unavailable => Future(Result(success = false, None))(ExecutionContext.global)
   }
 
-  def toggle: Future[Result]
+  def toggle(f: Toggle => Toggle = identity): Future[Result] = hass call f(toggleService)
 }
 
 case class UnknownEntity(entity_name: String, override val domain: String) extends Entity

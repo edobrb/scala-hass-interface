@@ -2,7 +2,7 @@ package hass.model.entity
 
 import hass.controller.Hass
 import hass.model.MetaDomain
-import hass.model.Types.Domain
+import hass.model.Types.DomainType
 import hass.model.state.SensorState
 
 object Sensor extends MetaDomain {
@@ -12,4 +12,4 @@ object Sensor extends MetaDomain {
 }
 
 case class Sensor(entity_name: String)(implicit hass: Hass)
-  extends StatefulEntity[String, SensorState]() with Sensor.DomainMeta
+  extends StatefulEntity[String, SensorState]() with Sensor.Domain

@@ -1,6 +1,7 @@
 import hass.controller.Hass
 import hass.model.entity.{InputDateTime, Light, Sensor, Switch}
 import hass.model.event.{LightTurnOnServiceCallEvent, ServiceCallEvent, UnknownEvent}
+import hass.model.group.{LightsGroup, SwitchesGroup}
 import hass.model.service.{LightTurnOnService, SwitchTurnOffService, SwitchTurnOnService}
 import hass.model.state._
 
@@ -28,7 +29,7 @@ object Test extends App {
   }
 
   lampada_edo.turnOn(_.brightness(255).rgb(255,0,0).transition(1))
-  //(luce_pc_edo, luce_letto_edo).turnOn
+  SwitchesGroup(Seq(luce_pc_edo, luce_letto_edo)).toggle()
 
   lampada_edo.onStateChange {
     case v => println(v)

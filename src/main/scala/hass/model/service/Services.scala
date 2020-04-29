@@ -1,7 +1,8 @@
 package hass.model.service
 
-import hass.model.Types.{Domain, ServiceType}
+import hass.model.Types.{DomainType, ServiceType}
 import hass.model.entity.{Light, Switch}
+import hass.model.state.{Off, On, Toggle}
 import hass.model.{MetaDomain, MetaService}
 import play.api.libs.json._
 
@@ -17,19 +18,7 @@ trait Service extends MetaDomain with MetaService {
   ))
 }
 
-case class UnknownServiceRequest(override val domain: Domain, override val service: ServiceType, override val serviceData: JsObject) extends Service
-
-object TurnOnService extends MetaService {
-  override def service: ServiceType = "turn_on"
-}
-
-object TurnOffService extends MetaService {
-  override def service: String = "turn_off"
-}
-
-object ToggleService extends MetaService {
-  override def service: String = "toggle"
-}
+case class UnknownServiceRequest(override val domain: DomainType, override val service: ServiceType, override val serviceData: JsObject) extends Service
 
 trait EntitiesService extends Service {
   override def serviceData: JsObject = attributes.foldLeft(JsObject(Seq()))({
@@ -45,25 +34,25 @@ trait EntitiesService extends Service {
 
 
 case class SwitchTurnOnService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with TurnOnService.ServiceMeta with Switch.DomainMeta
+  extends EntitiesService with On.Service with Switch.Domain
 
 case class SwitchTurnOffService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with TurnOffService.ServiceMeta with Switch.DomainMeta
+  extends EntitiesService with Off.Service with Switch.Domain
 
 case class SwitchToggleService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with ToggleService.ServiceMeta with Switch.DomainMeta
+  extends EntitiesService with Toggle.Service with Switch.Domain
 
 case class LightToggleService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with ToggleService.ServiceMeta with Light.DomainMeta
+  extends EntitiesService with Toggle.Service with Light.Domain
 
 case class LightTurnOffService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with TurnOffService.ServiceMeta with Light.DomainMeta {
+  extends EntitiesService with Off.Service with Light.Domain {
   def transition(v: Int): LightTurnOffService = LightTurnOffService(entityNames, Map("transition" -> JsNumber(v)))
 }
 
 //TODO: turn on service support array of entities?
 case class LightTurnOnService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with TurnOnService.ServiceMeta with Light.DomainMeta {
+  extends EntitiesService with On.Service with Light.Domain {
   def withRawAttribute(attribute: (String, JsValue)): LightTurnOnService = LightTurnOnService(entityNames, attributes ++ Map(attribute))
 
   def withAttribute[T: Writes](attribute: (String, T)): LightTurnOnService = attribute match {

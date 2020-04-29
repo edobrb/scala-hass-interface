@@ -6,7 +6,7 @@ import play.api.libs.json.JsObject
 
 
 case class InputBooleanState(override val entity_name: String, state: TurnState, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject])
-  extends EntityState[TurnState] with InputBoolean.DomainMeta {
+  extends EntityState[TurnState] with InputBoolean.Domain {
 
   def booleanState: Option[Boolean] = state match {
     case On => Some(true)

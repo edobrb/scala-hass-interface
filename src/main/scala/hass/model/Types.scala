@@ -4,22 +4,22 @@ import hass.model.Types._
 
 
 object Types {
-  type Domain = String
+  type DomainType = String
   type ServiceType = String
 }
 
 trait MetaDomain {
-  def domain: Domain
+  def domain: DomainType
 
-  trait DomainMeta extends MetaDomain {
-    override def domain: ServiceType = MetaDomain.this.domain
+  trait Domain extends MetaDomain {
+    override def domain: DomainType = MetaDomain.this.domain
   }
 }
 
 trait MetaService {
   def service: ServiceType
 
-  trait ServiceMeta extends MetaService {
+  trait Service extends MetaService {
     override def service: ServiceType = MetaService.this.service
   }
 }

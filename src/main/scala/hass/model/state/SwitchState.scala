@@ -6,5 +6,5 @@ import play.api.libs.json.JsObject
 
 
 case class SwitchState(override val entity_name: String, state: TurnState, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject])
-  extends EntityState[TurnState] with Switch.DomainMeta
+  extends EntityState[TurnState] with Switch.Domain
 
