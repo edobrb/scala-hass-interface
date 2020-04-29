@@ -6,7 +6,7 @@ import hass.model.Types.DomainType
 import hass.model.state.SensorState
 
 object Sensor extends MetaDomain {
-  def domain: Domain = "sensor"
+  def domain: DomainType = "sensor"
 
   def apply()(implicit sensor_name: sourcecode.Name, hass: Hass): Sensor = Sensor(sensor_name.value)(hass)
 }

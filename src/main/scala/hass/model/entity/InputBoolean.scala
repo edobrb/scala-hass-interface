@@ -6,7 +6,7 @@ import hass.model.Types.DomainType
 import hass.model.state.{InputBooleanState, TurnState}
 
 object InputBoolean extends MetaDomain {
-  def domain: Domain = "input_boolean"
+  def domain: DomainType = "input_boolean"
 
   def apply()(implicit light_name: sourcecode.Name, hass: Hass): Light = Light(light_name.value)(hass)
 }

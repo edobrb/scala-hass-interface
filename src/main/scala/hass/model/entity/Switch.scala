@@ -8,7 +8,7 @@ import hass.model.service.{SwitchToggleService, SwitchTurnOffService, SwitchTurn
 import hass.model.state._
 
 object Switch extends MetaDomain {
-  def domain: Domain = "switch"
+  def domain: DomainType = "switch"
 
   def apply()(implicit switch_name: sourcecode.Name, hass: Hass): Switch = Switch(switch_name.value)(hass)
 }

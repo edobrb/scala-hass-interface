@@ -10,12 +10,12 @@ import hass.model.state.{LightState, TurnState}
 import scala.concurrent.Future
 
 object Light extends MetaDomain {
-  def domain: Domain = "light"
+  def domain: DomainType = "light"
 
   def apply()(implicit light_name: sourcecode.Name, hass: Hass): Light = Light(light_name.value)(hass)
 }
 
-case class Light(entity_name: String)(implicit hass: Hass)
+case class Light(entity_name: String)(override implicit val hass: Hass)
   extends StatefulEntity[TurnState, LightState]() with Light.Domain
     with Turnable[LightTurnOnService, LightTurnOffService, LightToggleService] {
 

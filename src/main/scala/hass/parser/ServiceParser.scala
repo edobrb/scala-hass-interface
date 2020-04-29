@@ -2,6 +2,7 @@ package hass.parser
 
 import hass.model.entity.{Light, Switch}
 import hass.model.service._
+import hass.model.state.{Off, On, Toggle}
 import hass.model.{MetaDomain, MetaService}
 import hass.parser.CommonParser._
 import play.api.libs.json.JsValue
@@ -20,22 +21,22 @@ object ServiceParser extends JsonParser[Service] {
     unknownServiceParser)
 
   def lightTurnOnServiceParser: JsonParser[LightTurnOnService] =
-    expectedServiceParser(Light, TurnOnService, LightTurnOnService.apply)
+    expectedServiceParser(Light, On, LightTurnOnService.apply)
 
   def lightTurnOffServiceParser: JsonParser[LightTurnOffService] =
-    expectedServiceParser(Light, TurnOffService, LightTurnOffService.apply)
+    expectedServiceParser(Light, Off, LightTurnOffService.apply)
 
   def lightToggleServiceParser: JsonParser[LightToggleService] =
-    expectedServiceParser(Light, ToggleService, LightToggleService.apply)
+    expectedServiceParser(Light, Toggle, LightToggleService.apply)
 
   def switchTurnOnServiceParser: JsonParser[SwitchTurnOnService] =
-    expectedServiceParser(Switch, TurnOnService, SwitchTurnOnService.apply)
+    expectedServiceParser(Switch, On, SwitchTurnOnService.apply)
 
   def switchTurnOffServiceParser: JsonParser[SwitchTurnOffService] =
-    expectedServiceParser(Switch, TurnOffService, SwitchTurnOffService.apply)
+    expectedServiceParser(Switch, Off, SwitchTurnOffService.apply)
 
   def switchToggleServiceParser: JsonParser[SwitchToggleService] =
-    expectedServiceParser(Switch, ToggleService, SwitchToggleService.apply)
+    expectedServiceParser(Switch, Toggle, SwitchToggleService.apply)
 
   def unknownServiceParser: JsonParser[Service] = data =>
     for (domain <- str("domain")(data);
@@ -53,6 +54,4 @@ object ServiceParser extends JsonParser[Service] {
          attributes = serviceData.fields.filter(_._1 != "entity_id").toMap)
       yield f(entityDomainsNames.map(_._2), attributes)
   }
-
-
 }
