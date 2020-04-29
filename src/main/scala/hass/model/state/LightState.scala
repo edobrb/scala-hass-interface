@@ -8,8 +8,7 @@ case class LightState(override val entity_name: String,
                       state: TurnState,
                       lastChanged: DateTime,
                       lastUpdated: DateTime,
-                      attributes: Option[JsObject]) extends EntityState[TurnState] {
-  override def entity_domain: String = Light.domain
+                      attributes: Option[JsObject]) extends EntityState[TurnState] with Light.DomainMeta {
 
   def brightness: Option[Int] = attribute[Int]("brightness")
 }

@@ -1,6 +1,6 @@
 package hass.controller
 
-import java.util.concurrent.{CompletableFuture, CompletionStage, Future}
+import java.util.concurrent.CompletableFuture
 
 import com.github.andyglow.websocket.{Websocket, WebsocketClient}
 import hass.model.common.Observable
@@ -11,18 +11,23 @@ import hass.parser.{EventParser, ResultParser, StateParser}
 import play.api.libs.json._
 import utils.Logger.log
 
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext}
+import scala.util.{Failure, Success, Try}
+
 class Hass(hassUrl: String) extends Observable[Event] {
   protected val client: WebsocketClient[String] = WebsocketClient[String](s"ws://$hassUrl/api/websocket") {
     case str =>
       val json = Json.parse(str)
-      json \ "type" match {
-        case JsDefined(JsString("auth_required")) => //nothing
+      ((json \ "type").asOpt[String], (json \ "id").asOpt[Long]) match {
+        case (Some("auth_required"), _) => //nothing
 
-        case JsDefined(JsString("auth_invalid")) =>
+        case (Some("auth_invalid"), _) =>
           log wrn "Auth failed. Connection closed."
           close()
 
-        case JsDefined(JsString("auth_ok")) =>
+        case (Some("auth_ok"), _) =>
+          ping()
           log inf "Auth ok. Subscribing to all events... Fetching all states..."
           val subscribeEventsId = nextId
           socket ! "{\"id\":" + subscribeEventsId + ",\"type\":\"subscribe_events\"}"
@@ -51,19 +56,27 @@ class Hass(hassUrl: String) extends Observable[Event] {
             log inf "Fetched all states."
           })
 
-        case JsDefined(JsString("result")) =>
-          json \ "id" match {
-            case JsDefined(JsNumber(id)) =>
-              if (pendingRequest.isDefinedAt(id.intValue)) {
-                pendingRequest(id.intValue).complete(ResultParser(json).getOrElse(Result.parsingError))
-                pendingRequest -= id.intValue
-              }
+        case (Some("result"), Some(id)) =>
+          if (pendingRequest.isDefinedAt(id)) {
+            pendingRequest(id).complete(ResultParser(json).getOrElse(Result.parsingError))
+            pendingRequest -= id
+          } else {
+            log err "Malformed result: " + json
           }
 
-        case JsDefined(JsString("event")) =>
+
+        case (Some("event"), _) =>
           EventParser(json) match {
             case Some(event) => notifyObservers(event)
             case None => log err "Malformed event: " + json
+          }
+
+        case (Some("pong"), Some(id)) =>
+          if (pendingRequest.isDefinedAt(id.intValue)) {
+            pendingRequest(id.intValue).complete(Result(success = true, None))
+            pendingRequest -= id.intValue
+          } else {
+            log err "Malformed pong: " + json
           }
 
         case _ => log wrn "Unknown json: " + json
@@ -89,17 +102,30 @@ class Hass(hassUrl: String) extends Observable[Event] {
     }
   }
 
+  private def ping(): Unit = {
+    ExecutionContext.global.execute(() => {
+      Thread.sleep(1000)
+      val pingFuture = send(id => "{\"id\":" + id + ",\"type\":\"ping\"}")
+      Try(Await.result(pingFuture, 2.seconds)) match {
+        case Failure(_) => println("Not received pong response in 2 seconds!")
+        case Success(_) => ping()
+      }
+    })
+  }
 
-  def call(req: Service): scala.concurrent.Future[Result] = {
+  def send(f: Long => String): scala.concurrent.Future[Result] = {
     import scala.compat.java8.FutureConverters._
     val future = new CompletableFuture[Result]
     val reqId = nextId
-    val reqJson: JsObject = req.materialize(reqId)
+    val str = f(reqId)
 
     pendingRequest += reqId -> future
-    socket ! reqJson.toString()
+    socket ! str
     toScala(future)
   }
+
+  def call(req: Service): scala.concurrent.Future[Result] =
+    send(id => req.materialize(id).toString())
 
   private def nextId: Long = nextIdLock.synchronized {
     nextIdVar = nextIdVar + 1

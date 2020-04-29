@@ -3,7 +3,7 @@ package hass.model.event
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.service.{LightTurnOnService, Service}
 import hass.model.state.{EntityState, SensorState, SwitchState}
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.JsValue
 
 sealed trait Event {
   def timeFired: DateTime
@@ -30,7 +30,7 @@ object SensorStateChangedEvent {
   }
 }
 
-case class ServiceCallEvent(service:Service, timeFired: DateTime, origin: String) extends Event
+case class ServiceCallEvent(service: Service, timeFired: DateTime, origin: String) extends Event
 
 object LightTurnOnServiceCallEvent {
   def unapply(event: Event): Option[(LightTurnOnService, DateTime, String)] = event match {

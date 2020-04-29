@@ -7,8 +7,8 @@ import play.api.libs.json.JsObject
 import scala.util.Try
 
 
-case class SensorState(override val entity_name: String, state: String, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject]) extends EntityState[String] {
-  override def entity_domain: String = Sensor.domain
+case class SensorState(override val entity_name: String, state: String, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject])
+  extends EntityState[String] with Sensor.DomainMeta {
 
   private def tryState[T](r: => T): Option[T] = Try(r).toOption
 

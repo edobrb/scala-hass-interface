@@ -10,6 +10,10 @@ object CommonParser {
   type Parser[-I, +O] = I => Option[O]
   type JsonParser[+O] = Parser[JsValue, O]
 
+  implicit class richParser[I, O](p: Parser[I, O]) {
+    def map[T](f: O => T): Parser[I, T] = i => p(i).map(f)
+  }
+
   implicit def fromJsLookupResultToOption(res: JsLookupResult): Option[JsValue] = res match {
     case JsDefined(value) => Some(value)
     case _ => None
@@ -19,15 +23,19 @@ object CommonParser {
 
   def value[T: Reads](name: String): JsonParser[T] = data => json(name)(data) flatMap (_.asOpt[T])
 
-  def str(name: String): JsonParser[String] = data => json(name)(data) flatMap (_.asOpt[String])
+  def str(name: String): JsonParser[String] = value[String](name)
 
-  def number(name: String): JsonParser[BigDecimal] = data => json(name)(data) flatMap (_.asOpt[BigDecimal])
+  def strSeq(name: String): JsonParser[Seq[String]] = value[Seq[String]](name)
 
-  def long(name: String): JsonParser[Long] = data => json(name)(data) flatMap (_.asOpt[Long])
+  def strOrStrSeq(name: String): JsonParser[Seq[String]] = first(Seq(str(name).map(s => Seq(s)), strSeq(name)))
 
-  def bool(name: String): JsonParser[Boolean] = data => json(name)(data) flatMap (_.asOpt[Boolean])
+  def number(name: String): JsonParser[BigDecimal] = value[BigDecimal](name)
 
-  def datetime(name: String): JsonParser[DateTime] = data => json(name)(data) map (_.as[DateTime])
+  def long(name: String): JsonParser[Long] = value[Long](name)
+
+  def bool(name: String): JsonParser[Boolean] = value[Boolean](name)
+
+  def datetime(name: String): JsonParser[DateTime] = value[DateTime](name)
 
   def jsonObj(name: String): JsonParser[JsObject] = data => json(name)(data) match {
     case Some(value: JsObject) => Some(value)
@@ -42,6 +50,12 @@ object CommonParser {
       None
     }
   }
+
+  def entityIdsSeq: Parser[Seq[String], Seq[(String, String)]] = ids =>
+    Some(for (id <- ids;
+              (domain, name) <- entityIds(id))
+      yield (domain, name))
+
 
   def first[I, O](parsers: Seq[I => Option[O]]): Parser[I, O] = input =>
     (for (parser <- parsers;

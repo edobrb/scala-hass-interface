@@ -6,9 +6,9 @@ import play.api.libs.json.{JsObject, Reads}
 trait EntityState[T] {
   def entity_name: String
 
-  def entity_domain: String
+  def domain: String
 
-  def entity_id: String = s"$entity_domain.$entity_name"
+  def entity_id: String = s"$domain.$entity_name"
 
   def lastChanged: DateTime
 
@@ -30,7 +30,7 @@ object EntityState {
 case class UnknownEntityState(override val entity_id: String, state: String, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject]) extends EntityState[String] {
   override def entity_name: String = entity_id.split('.')(1)
 
-  override def entity_domain: String = entity_id.split('.')(0)
+  override def domain: String = entity_id.split('.')(0)
 }
 
 
