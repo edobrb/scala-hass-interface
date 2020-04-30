@@ -2,13 +2,10 @@ package hass.model.group
 
 import hass.controller.Hass
 import hass.model.entity.{Light, Turnable}
-import hass.model.service.{LightToggleService, LightTurnOffService, LightTurnOnService}
+import hass.model.service.LightTurnService
+import hass.model.state.TurnAction
 
 case class LightsGroup(lights: Seq[Light])(override implicit val hass: Hass)
-  extends Turnable[LightTurnOnService, LightTurnOffService, LightToggleService] {
-  override def onService: LightTurnOnService = LightTurnOnService(lights.map(_.entity_name))
-
-  override def offService: LightTurnOffService = LightTurnOffService(lights.map(_.entity_name))
-
-  override def toggleService: LightToggleService = LightToggleService(lights.map(_.entity_name))
+  extends Turnable[LightTurnService] {
+  override def service(turn: TurnAction): LightTurnService = LightTurnService(lights.map(_.entity_name), turn)
 }

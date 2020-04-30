@@ -1,9 +1,6 @@
 import hass.controller.Hass
-import hass.model.entity.{InputDateTime, Light, Sensor, Switch}
-import hass.model.event.{LightTurnOnServiceCallEvent, ServiceCallEvent, UnknownEvent}
-import hass.model.group.{LightsGroup, SwitchesGroup}
-import hass.model.service.{LightTurnOnService, SwitchTurnOffService, SwitchTurnOnService}
-import hass.model.state._
+import hass.model.entity._
+import hass.model.event._
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
@@ -19,34 +16,19 @@ object Test extends App {
   val luce_pc_edo = Switch()
   val luce_letto_edo = Switch()
   val consumo_garage = Sensor()
-  consumo_garage.onStateValueChange({
-    case s =>println(s)
-  })
 
-  val prova_data_tempo = InputDateTime()
-  prova_data_tempo.onStateValueChange {
-    case Left(value) => println(value)
-  }
-
-  lampada_edo.turnOn(_.brightness(255).rgb(255,0,0).transition(1))
-  SwitchesGroup(Seq(luce_pc_edo, luce_letto_edo)).toggle()
-
-  lampada_edo.onStateChange {
-    case v => println(v)
-  }
-  //irr_davanti.toggle.onComplete(println)
-
+  lampada_edo.turnOn(_.rgb(0,255,0))
   hass.onEvent {
-    /*case UnknownEvent(jsValue, timeFired, origin) => println("Unknown: " + jsValue)
-    //case SwitchStateChangedEvent(entity_id, oldState, newState, timeFired, origin) => println(s"${newState.entity_name} -> ${newState.state}")
-    //case SensorStateChangedEvent("consumo_casa", oldState, newState, timeFired, origin) => println(s"${newState.entity_name} = ${newState.state} (${newState.lastUpdated})")
-    //case SensorStateChangedEvent("consumo_garage", oldState, newState, timeFired, origin) => println(s"${newState.entity_name} = ${newState.state} (${newState.lastUpdated})")
+    case SwitchStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"switch $entityName -> ${newState.state}")
+    case LightStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"light $entityName -> ${newState.state}")
+    case SensorStateChangedEvent(entityName, oldState, newState, timeFired, origin) => //println(s"sensor $entityName -> ${newState.state}")
 
-    case LightTurnOnServiceCallEvent(service, _, _) => println(service)
-    */
+    case LightTurnServiceCallEvent(service, fired, from) => println("Want " + service.turn + " lights: " + service.entityNames)
+    case SwitchTurnServiceCallEvent(service, fired, from) => println("Want " + service.turn + " switches: " + service.entityNames)
 
-    case a:ServiceCallEvent => println(a)
-    //case e => println(e)
+    case a: StateChangedEvent[_] => println(a)
+    case a: ServiceCallEvent => println(a)
+    case a: UnknownEvent => println(a)
   }
 
   /*hass.onStateChange {

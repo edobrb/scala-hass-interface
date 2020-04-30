@@ -2,6 +2,7 @@ package hass.parser
 
 
 import com.github.nscala_time.time.Imports.DateTime
+import hass.model.state.{Off, On, Toggle, TurnAction}
 import hass.parser.ImplicitReads._
 import play.api.libs.json._
 
@@ -36,6 +37,13 @@ object CommonParser {
   def bool(name: String): JsonParser[Boolean] = value[Boolean](name)
 
   def datetime(name: String): JsonParser[DateTime] = value[DateTime](name)
+
+  def turnAction: Parser[String, TurnAction] = {
+    case v if v == On.service => Some(On)
+    case v if v == Off.service => Some(Off)
+    case v if v == Toggle.service => Some(Toggle)
+    case _ => None
+  }
 
   def jsonObj(name: String): JsonParser[JsObject] = data => json(name)(data) match {
     case Some(value: JsObject) => Some(value)

@@ -1,9 +1,9 @@
 package hass.model.service
 
 import hass.model.Types.{DomainType, ServiceType}
-import hass.model.entity.{Light, Switch}
-import hass.model.state.{Off, On, Toggle}
-import hass.model.{MetaDomain, MetaService}
+import hass.model.entity.{Entity, Light, Switch}
+import hass.model.state.TurnAction
+import hass.model.{Domain, MetaDomain, MetaService}
 import play.api.libs.json._
 
 trait Service extends MetaDomain with MetaService {
@@ -32,46 +32,46 @@ trait EntitiesService extends Service {
   def entityIds: Seq[String] = entityNames.map(n => s"$domain.$n")
 }
 
-
-case class SwitchTurnOnService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with On.Service with Switch.Domain
-
-case class SwitchTurnOffService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with Off.Service with Switch.Domain
-
-case class SwitchToggleService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with Toggle.Service with Switch.Domain
-
-case class LightToggleService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with Toggle.Service with Light.Domain
-
-case class LightTurnOffService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with Off.Service with Light.Domain {
-  def transition(v: Int): LightTurnOffService = LightTurnOffService(entityNames, Map("transition" -> JsNumber(v)))
+trait TurnService extends EntitiesService {
+  def turn: TurnAction
+  override def service: ServiceType = turn.service
 }
 
-//TODO: turn on service support array of entities?
-case class LightTurnOnService(override val entityNames: Seq[String], override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService with On.Service with Light.Domain {
-  def withRawAttribute(attribute: (String, JsValue)): LightTurnOnService = LightTurnOnService(entityNames, attributes ++ Map(attribute))
+case class TurnService2[T<:Entity:Domain](entities: Seq[T], turn: TurnAction, override val attributes: Map[String, JsValue] = Map())
+  extends EntitiesService {
+  override def service: ServiceType = turn.service
 
-  def withAttribute[T: Writes](attribute: (String, T)): LightTurnOnService = attribute match {
+  override def entityNames: Seq[String] = entities.map(_.entity_name)
+
+  override def domain: DomainType = implicitly[hass.model.Domain[T]].value
+}
+
+case class SwitchTurnService(override val entityNames: Seq[String], override val turn: TurnAction, override val attributes: Map[String, JsValue] = Map())
+  extends TurnService with Switch.Domain
+
+case class LightTurnService(override val entityNames: Seq[String], override val turn: TurnAction, override val attributes: Map[String, JsValue] = Map())
+  extends TurnService with Light.Domain {
+
+  def withRawAttribute(attribute: (String, JsValue)): LightTurnService = LightTurnService(entityNames, turn, attributes ++ Map(attribute))
+
+  def withAttribute[T: Writes](attribute: (String, T)): LightTurnService = attribute match {
     case (name, value) => withRawAttribute(name -> Json.toJson(value))
   }
 
-  def brightness(v: Int): LightTurnOnService = withAttribute("brightness" -> v)
+  def brightness(v: Int): LightTurnService = withAttribute("brightness" -> v)
 
-  def colorTemp(v: Int): LightTurnOnService = withAttribute("color_temp" -> v)
+  def colorTemp(v: Int): LightTurnService = withAttribute("color_temp" -> v)
 
-  def kelvin(v: Float): LightTurnOnService = withAttribute("kelvin" -> v)
+  def kelvin(v: Float): LightTurnService = withAttribute("kelvin" -> v)
 
-  def rgb(r: Int, g: Int, b: Int): LightTurnOnService = withAttribute("rgb_color" -> Seq(r, g, b))
+  def rgb(r: Int, g: Int, b: Int): LightTurnService = withAttribute("rgb_color" -> Seq(r, g, b))
 
-  def xy(x: Float, y: Float): LightTurnOnService = withAttribute("xy_color" -> Seq(x, y))
+  def xy(x: Float, y: Float): LightTurnService = withAttribute("xy_color" -> Seq(x, y))
 
-  def effect(name: String): LightTurnOnService = withAttribute("effect" -> name)
+  def effect(name: String): LightTurnService = withAttribute("effect" -> name)
 
-  def transition(v: Int): LightTurnOnService = withAttribute("transition" -> v)
+  def transition(v: Int): LightTurnService = withAttribute("transition" -> v)
 
   //TODO: finish to add all Service data attribute
+
 }

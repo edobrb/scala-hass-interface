@@ -8,12 +8,17 @@ object Types {
   type ServiceType = String
 }
 
+trait Domain[T] {
+  def value: DomainType
+}
+
 trait MetaDomain {
   def domain: DomainType
 
   trait Domain extends MetaDomain {
     override def domain: DomainType = MetaDomain.this.domain
   }
+
 }
 
 trait MetaService {
