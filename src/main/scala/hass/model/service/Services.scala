@@ -1,9 +1,9 @@
 package hass.model.service
 
 import hass.model.Types.{DomainType, ServiceType}
-import hass.model.entity.{Entity, Light, Switch}
+import hass.model.entity.{Light, Switch}
 import hass.model.state.TurnAction
-import hass.model.{Domain, MetaDomain, MetaService}
+import hass.model.{MetaDomain, MetaService}
 import play.api.libs.json._
 
 trait Service extends MetaDomain with MetaService {
@@ -18,7 +18,7 @@ trait Service extends MetaDomain with MetaService {
   ))
 }
 
-case class UnknownServiceRequest(override val domain: DomainType, override val service: ServiceType, override val serviceData: JsObject) extends Service
+case class UnknownService(override val domain: DomainType, override val service: ServiceType, override val serviceData: JsObject) extends Service
 
 trait EntitiesService extends Service {
   override def serviceData: JsObject = attributes.foldLeft(JsObject(Seq()))({
@@ -35,15 +35,6 @@ trait EntitiesService extends Service {
 trait TurnService extends EntitiesService {
   def turn: TurnAction
   override def service: ServiceType = turn.service
-}
-
-case class TurnService2[T<:Entity:Domain](entities: Seq[T], turn: TurnAction, override val attributes: Map[String, JsValue] = Map())
-  extends EntitiesService {
-  override def service: ServiceType = turn.service
-
-  override def entityNames: Seq[String] = entities.map(_.entity_name)
-
-  override def domain: DomainType = implicitly[hass.model.Domain[T]].value
 }
 
 case class SwitchTurnService(override val entityNames: Seq[String], override val turn: TurnAction, override val attributes: Map[String, JsValue] = Map())

@@ -2,6 +2,7 @@ package hass.parser
 
 
 import com.github.nscala_time.time.Imports.DateTime
+import hass.model.Types.ServiceType
 import hass.model.state.{Off, On, Toggle, TurnAction}
 import hass.parser.ImplicitReads._
 import play.api.libs.json._
@@ -11,7 +12,7 @@ object CommonParser {
   type Parser[-I, +O] = I => Option[O]
   type JsonParser[+O] = Parser[JsValue, O]
 
-  implicit class richParser[I, O](p: Parser[I, O]) {
+  implicit class RichParser[I, O](p: Parser[I, O]) {
     def map[T](f: O => T): Parser[I, T] = i => p(i).map(f)
   }
 
@@ -38,7 +39,7 @@ object CommonParser {
 
   def datetime(name: String): JsonParser[DateTime] = value[DateTime](name)
 
-  def turnAction: Parser[String, TurnAction] = {
+  def turnAction: Parser[ServiceType, TurnAction] = {
     case v if v == On.service => Some(On)
     case v if v == Off.service => Some(Off)
     case v if v == Toggle.service => Some(Toggle)

@@ -8,10 +8,6 @@ object Types {
   type ServiceType = String
 }
 
-trait Domain[T] {
-  def value: DomainType
-}
-
 trait MetaDomain {
   def domain: DomainType
 
