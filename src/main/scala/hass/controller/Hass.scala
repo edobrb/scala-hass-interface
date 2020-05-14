@@ -8,6 +8,7 @@ import hass.model.event.{ConnectionClosedEvent, ConnectionOpenEvent, Event, Stat
 import hass.model.service.{Result, Service}
 import hass.model.state.EntityState
 import hass.parser.{EventParser, ResultParser, StateParser}
+import org.joda.time.DateTime
 import play.api.libs.json._
 import utils.Logger.log
 
@@ -24,7 +25,11 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
 
         case (Some("auth_invalid"), _) =>
           log wrn "Auth failed. Connection closed."
-          this.close()
+          if (retryOnError) {
+            connect()
+          } else {
+            this.close()
+          }
 
         case (Some("auth_ok"), _) => socket match {
           case Some(s) => ping()
@@ -46,13 +51,17 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
               result.result match {
                 case Some(JsArray(v)) => v.foreach(s => {
                   StateParser(s) match {
-                    case Some(state) => entityStates += (state.entity_id -> state)
+                    case Some(state) =>
+                      entityStates += (state.entity_id -> state)
+                      //TODO: not very correct
+                      notifyObservers(StateChangedEvent(state.entity_id, state, state, DateTime.now(), "INTERNAL"))
                     case None => log err ("parsing error: " + s)
                   }
                 })
                 case _ => log err "unexpected result in get_states"
               }
               log inf "Fetched all states."
+
             })
           case None => log err "Received auth_ok but socket is closed"
         }

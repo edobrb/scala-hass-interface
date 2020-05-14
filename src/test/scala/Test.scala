@@ -3,12 +3,21 @@ import hass.model.entity.{Light, Sensor, Switch}
 import hass.model.event._
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
+import scala.util.Try
 
 object Test extends App {
 
+  def read(fileName: String): Try[String] = {
+    Try(scala.io.Source.fromFile(fileName)).map(source => {
+      val result = Try(source.mkString)
+      source.close()
+      result
+    }).flatten
+  }
+
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-  var conn = "192.168.1.54:8123"
-  implicit val hass: Hass = new Hass(conn, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIwZjQ1NWUwMWNkNzE0NGFkYjVkZmJhZDJkZDM2YzBlMiIsImlhdCI6MTU4NjEwODM5NCwiZXhwIjoxOTAxNDY4Mzk0fQ.1a2dodNofYhygdCybk-6MA7No8MnZozC94UTG_sbBQA", true)
+  var conn = "192.168.1.10:8123"
+  implicit val hass: Hass = new Hass(conn, read("C:\\Users\\Edo\\Desktop\\jwt.txt").getOrElse(""), true)
 
   val lampada_edo = Light()
   val irr_davanti = Switch()
@@ -17,7 +26,7 @@ object Test extends App {
   val consumo_garage = Sensor()
 
   hass.onConnection { () =>
-    lampada_edo.turnOn(_.rgb(0, 255, 0))
+    //lampada_edo.turnOn(_.rgb(0, 255, 0))
   }
   hass.onClose(() => {println("Closed"); conn = "192.168.1.10:8123"})
 
