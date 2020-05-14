@@ -7,9 +7,8 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 object Test extends App {
 
   implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-  implicit val hass: Hass = new Hass("192.168.1.10:8123")
-
-  hass auth "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIwZjQ1NWUwMWNkNzE0NGFkYjVkZmJhZDJkZDM2YzBlMiIsImlhdCI6MTU4NjEwODM5NCwiZXhwIjoxOTAxNDY4Mzk0fQ.1a2dodNofYhygdCybk-6MA7No8MnZozC94UTG_sbBQA"
+  var conn = "192.168.1.54:8123"
+  implicit val hass: Hass = new Hass(conn, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIwZjQ1NWUwMWNkNzE0NGFkYjVkZmJhZDJkZDM2YzBlMiIsImlhdCI6MTU4NjEwODM5NCwiZXhwIjoxOTAxNDY4Mzk0fQ.1a2dodNofYhygdCybk-6MA7No8MnZozC94UTG_sbBQA", true)
 
   val lampada_edo = Light()
   val irr_davanti = Switch()
@@ -17,7 +16,11 @@ object Test extends App {
   val luce_letto_edo = Switch()
   val consumo_garage = Sensor()
 
-  lampada_edo.turnOn(_.rgb(0,255,0))
+  hass.onConnection { () =>
+    lampada_edo.turnOn(_.rgb(0, 255, 0))
+  }
+  hass.onClose(() => {println("Closed"); conn = "192.168.1.10:8123"})
+
   hass.onEvent {
     case SwitchStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"switch $entityName -> ${newState.state}")
     case LightStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"light $entityName -> ${newState.state}")
@@ -30,6 +33,10 @@ object Test extends App {
     case a: ServiceCallEvent => println(a)
     case a: UnknownEvent => println(a)
   }
+
+  System.in.read()
+  hass.close()
+
 
   /*hass.onStateChange {
     case UnknownEntityState(entity_id, state, lastChanged, lastUpdated, attributes) => println("Unknown: " + entity_id + " " + state)

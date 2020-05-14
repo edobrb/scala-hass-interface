@@ -1,5 +1,6 @@
 package hass.model.event
 
+import com.github.nscala_time.time.Imports
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.service._
 import hass.model.state.EntityState
@@ -17,6 +18,21 @@ case class StateChangedEvent[S <: EntityState[_]](entity_id: String, oldState: S
 
 case class ServiceCallEvent(service: Service, timeFired: DateTime, origin: String) extends Event
 
+case class ConnectionOpenEvent() extends Event {
+  private val _timeFired = Imports.DateTime.now()
+
+  override def timeFired: Imports.DateTime = _timeFired
+
+  override def origin: String = "INTERNAL"
+}
+
+case class ConnectionClosedEvent() extends Event {
+  private val _timeFired = Imports.DateTime.now()
+
+  override def timeFired: Imports.DateTime = _timeFired
+
+  override def origin: String = "INTERNAL"
+}
 
 
 
