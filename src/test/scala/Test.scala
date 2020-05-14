@@ -1,5 +1,5 @@
 import hass.controller.Hass
-import hass.model.entity._
+import hass.model.entity.{Light, Sensor, Switch}
 import hass.model.event._
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
