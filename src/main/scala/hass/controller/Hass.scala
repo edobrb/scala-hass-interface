@@ -16,8 +16,13 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
+object Hass {
+  def apply(hassUrl: String, token: String, retryOnError: Boolean): Hass =
+    new Hass(hassUrl, token, retryOnError)
+}
 class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observable[Event] {
-  def receiver: PartialFunction[String, Unit] = {
+
+  private val receiver: PartialFunction[String, Unit] = {
     case str =>
       val json = Json.parse(str)
       ((json \ "type").asOpt[String], (json \ "id").asOpt[Long]) match {
@@ -93,8 +98,6 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
         case _ => log wrn "Unknown json: " + json
       }
   }
-
-
   private var client: Option[WebsocketClient[String]] = None
   private var socket: Option[Websocket] = None
   private val nextIdLock = new Object()
@@ -103,6 +106,17 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
   private var nextIdVar: Long = 0
 
   connect()
+
+  onEvent {
+    case StateChangedEvent(entity_id, _, newState, _, _) => entityStates.synchronized {
+      entityStates(entity_id) = newState
+    }
+  }
+
+  private def nextId: Long = nextIdLock.synchronized {
+    nextIdVar = nextIdVar + 1
+    nextIdVar
+  }
 
   private def connect(): Unit = {
     ExecutionContext.global.execute(() => {
@@ -119,7 +133,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
       val clientBuilder = WebsocketClient.Builder.apply[String](s"ws://$hassUrl/api/websocket")(receiver).onFailure({
         case exception =>
           log err exception.getMessage
-          notifyObservers(ConnectionClosedEvent())
+          notifyObservers(ConnectionClosedEvent)
           if(retryOnError) {
             connect()
           } else {
@@ -130,7 +144,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
       Try(client.get.open()) match {
         case Failure(exception) =>
           log err "While opening connection: " + exception.getMessage
-          notifyObservers(ConnectionClosedEvent())
+          notifyObservers(ConnectionClosedEvent)
           if (retryOnError) {
             connect()
           } else {
@@ -140,15 +154,9 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
           log inf "Connected."
           socket = Some(openSocket)
           openSocket ! "{\"type\":\"auth\",\"access_token\":\"" + token + "\"}"
-          notifyObservers(ConnectionOpenEvent())
+          notifyObservers(ConnectionOpenEvent)
       }
     })
-  }
-
-  onEvent {
-    case StateChangedEvent(entity_id, _, newState, _, _) => entityStates.synchronized {
-      entityStates(entity_id) = newState
-    }
   }
 
   private def ping(): Unit = {
@@ -182,11 +190,6 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
   def call(req: Service): scala.concurrent.Future[Result] =
     send(id => req.materialize(id).toString())
 
-  private def nextId: Long = nextIdLock.synchronized {
-    nextIdVar = nextIdVar + 1
-    nextIdVar
-  }
-
   def stateOf[E <: EntityState[_]](entity_id: String): Option[E] = entityStates.synchronized {
     if (entityStates.contains(entity_id)) {
       Some(entityStates(entity_id).asInstanceOf[E])
@@ -202,11 +205,11 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
   })
 
   def onConnection(f: () => Unit): Unit = addObserver({
-    case ConnectionOpenEvent() => f()
+    case ConnectionOpenEvent => f()
   })
 
   def onClose(f: () => Unit): Unit = addObserver({
-    case ConnectionClosedEvent() => f()
+    case ConnectionClosedEvent => f()
   })
 
   def close(): Unit = client match {
