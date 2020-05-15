@@ -10,7 +10,7 @@ The purpose is to provide a complete, easy and type safe library for interacting
 The usage is unfolded by examples:
 
 ##### Creation of Hass interface
-```
+```scala
 implicit val hass: Hass = Hass(
   "ip:port", 
   "auth token", 
@@ -20,7 +20,7 @@ implicit val hass: Hass = Hass(
 
 #### The hard way
 Event listening
-```
+```scala
 hass.onEvent {
   case SwitchStateChangedEvent(entityName, oldState, newState, timeFired, origin) => ???
   case LightStateChangedEvent (entityName, oldState, newState, timeFired, origin) => ???
@@ -35,18 +35,18 @@ hass.onEvent {
 }
 ```
 A specific event listening
-```
+```scala
 hass.onConnection { () => println("connected!") }
 hass.onClose{ () => println("connectino closed!") }
 ```
 Service call
-```
+```scala
 val turnOnAllMyLight = LightTurnService(Seq("my_lamp", "my_other_lamp"), On).brightness(255)
 hass call turnOnAllMyLight
 ```
 
 #### An easier approach
-```
+```scala
   val my_light = Light()            //will bound to light.my_light entity
   val my_other_light = Light()      //will bound to light.my_other_light entity
   val my_switch = Switch("sonoff1") // will bound to switch.sonoff1 entity
