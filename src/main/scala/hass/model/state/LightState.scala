@@ -11,14 +11,13 @@ case class LightState(override val entity_name: String,
                       override val lastUpdated: DateTime,
                       override val attributes: Option[JsObject]) extends EntityState[TurnState] with Light.Domain {
 
-  def brightness: Option[Int] = attribute[Int]("brightness")
 
-  def colorTemp: Option[Int] = attribute[Int]("color_temp")
+  def transition: Option[Int] = attribute[Int]("transition")
 
-  def kelvin: Option[Float] = attribute[Float]("kelvin")
+  def profile: Option[String] = attribute[String]("profile")
 
-  def rgb: Option[(Int, Int, Int)] = attribute[List[Int]]("rgb_color") match {
-    case Some(r::g::b::Nil) => Some((r, g, b))
+  def hs: Option[(Float, Float)] = attribute[List[Float]]("hs_color") match {
+    case Some(h :: s :: Nil) => Some((h, s))
     case _ => None
   }
 
@@ -27,9 +26,28 @@ case class LightState(override val entity_name: String,
     case _ => None
   }
 
+  def rgb: Option[(Int, Int, Int)] = attribute[List[Int]]("rgb_color") match {
+    case Some(r :: g :: b :: Nil) => Some((r, g, b))
+    case _ => None
+  }
+
+  def white: Option[Int] = attribute[Int]("white_value")
+
+  def colorTemp: Option[Int] = attribute[Int]("color_temp")
+
+  def kelvin: Option[Float] = attribute[Float]("kelvin")
+
+  def color: Option[String] = attribute[String]("color_name")
+
+  def brightness: Option[Int] = attribute[Int]("brightness")
+
+  def brightnessPct: Option[Int] = attribute[Int]("brightness_pct")
+
+  def brightnessStep: Option[Int] = attribute[Int]("brightness_step")
+
+  def brightnessStepPct: Option[Int] = attribute[Int]("brightness_step_pct")
+
+  def flash: Option[String] = attribute[String]("flash")
+
   def effect: Option[String] = attribute[String]("effect")
-
-  def transition: Option[Int] = attribute[Int]("transition")
-
-  //TODO: finish to add all data attribute
 }

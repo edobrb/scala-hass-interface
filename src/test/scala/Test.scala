@@ -34,6 +34,7 @@ object Test extends App {
   }
 
   hass.onConnection { () =>
+    lampada_edo.turnOn(_.hs(300, 55))
     irrigazione_davanti_martedi.toggle()
     prova_data_tempo.set(DateAndTime(DateTime.now()))
   }
