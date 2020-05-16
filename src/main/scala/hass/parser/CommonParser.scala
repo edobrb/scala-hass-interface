@@ -16,9 +16,8 @@ object CommonParser {
     def map[T](f: O => T): Parser[I, T] = i => p(i).map(f)
   }
 
-  implicit def fromJsLookupResultToOption(res: JsLookupResult): Option[JsValue] = res match {
-    case JsDefined(value) => Some(value)
-    case _ => None
+  implicit def fromJsLookupResultToOption(res: JsLookupResult): Option[JsValue] = Some(res) collect {
+    case JsDefined(value) => value
   }
 
   def extract[T: Reads]: JsonParser[T] = _.asOpt[T]
@@ -43,33 +42,24 @@ object CommonParser {
 
   def datetime(name: String): JsonParser[DateTime] = value[DateTime](name)
 
-  def turnAction: Parser[ServiceType, TurnAction] = {
-    case v if v == On.service => Some(On)
-    case v if v == Off.service => Some(Off)
-    case v if v == Toggle.service => Some(Toggle)
-    case _ => None
+  def turnAction: Parser[ServiceType, TurnAction] = st => Some(st) collect {
+    case On.service => On
+    case Off.service => Off
+    case Toggle.service => Toggle
   }
 
-  def jsonObj(name: String): JsonParser[JsObject] = data => json(name)(data) match {
-    case Some(value: JsObject) => Some(value)
-    case _ => None
+  def jsonObj(name: String): JsonParser[JsObject] = data => json(name)(data) collect {
+    case value: JsObject => value
   }
 
   def entityIdsSeq: Parser[Seq[String], Seq[(String, String)]] = ids =>
-    Some(for (id <- ids;
-              (domain, name) <- entityIds(id))
-      yield (domain, name))
+    Some(for (id <- ids; (domain, name) <- entityIds(id)) yield (domain, name))
 
-  def entityIds: Parser[String, (String, String)] = entityId => {
-    val spl = entityId.split('.')
-    if (spl.length == 2) {
-      Some((spl(0), spl(1)))
-    } else {
-      None
+  def entityIds: Parser[String, (String, String)] = entityId =>
+    Some(entityId.split('.').toList) collect {
+      case domain :: name :: Nil => (domain, name)
     }
-  }
 
   def first[I, O](parsers: Seq[I => Option[O]]): Parser[I, O] = input =>
-    (for (parser <- parsers;
-          result <- parser(input)) yield result).headOption
+    (for (parser <- parsers; result <- parser(input)) yield result).headOption
 }

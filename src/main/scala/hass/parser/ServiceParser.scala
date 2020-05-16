@@ -30,7 +30,7 @@ object ServiceParser extends JsonParser[Service] {
     turnServiceParser2(InputBoolean, InputBooleanTurnService.apply)
 
   def inputDatetimeSetServiceParser: JsonParser[InputDateTimeSetService] = data =>
-    for ((InputDateTime.domain, InputDateTime.service, serviceData) <- defaultInfoParser(data);
+    for ((InputDateTime.domain, InputDateTimeSetService.service, serviceData) <- defaultInfoParser(data);
          entityIds <- strOrStrSeq("entity_id")(serviceData);
          timeOrDate <- extract[TimeOrDate].apply(serviceData))
       yield InputDateTimeSetService(entityIds, timeOrDate)
