@@ -2,7 +2,7 @@ package hass.parser
 
 import hass.model.MetaDomain
 import hass.model.Types.{DomainType, ServiceType}
-import hass.model.entity.{InputBoolean, InputDateTime, Light}
+import hass.model.entity.{InputBoolean, InputDateTime, Light, Switch}
 import hass.model.service._
 import hass.model.state.ground.{TimeOrDate, TurnAction}
 import hass.parser.CommonParser._
@@ -24,7 +24,7 @@ object ServiceParser extends JsonParser[Service] {
     turnServiceParser(Light, LightTurnService.apply)
 
   def switchTurnServiceParser: JsonParser[SwitchTurnService] =
-    turnServiceParser(Light, SwitchTurnService.apply)
+    turnServiceParser(Switch, SwitchTurnService.apply)
 
   def inputBooleanTurnServiceParser: JsonParser[InputBooleanTurnService] =
     turnServiceParser2(InputBoolean, InputBooleanTurnService.apply)

@@ -1,7 +1,6 @@
 import hass.controller.Hass
 import hass.model.entity._
 import hass.model.event._
-import hass.model.service.{LightTurnService, UnknownService}
 import hass.model.state.ground.DateAndTime
 import org.joda.time.DateTime
 
@@ -28,13 +27,12 @@ object Test extends App {
   val consumo_garage = Sensor()
   val irrigazione_davanti_martedi = InputBoolean()
   val prova_data_tempo = InputDateTime()
+  val irrigazione_davanti_cond1 = BinarySensor()
 
-  irrigazione_davanti_martedi.onState {
+  irrigazione_davanti_cond1.onState {
     case a => println(a._1)
   }
-  prova_data_tempo.onState {
-    case a => println(a._1)
-  }
+
   hass.onConnection { () =>
     irrigazione_davanti_martedi.toggle()
     prova_data_tempo.set(DateAndTime(DateTime.now()))
@@ -43,20 +41,14 @@ object Test extends App {
   hass.onClose(() => println("Closed"))
 
   hass.onEvent {
-    case SwitchStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"switch $entityName -> ${newState.state}")
-    case LightStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"light $entityName -> ${newState.state}")
-    case SensorStateChangedEvent(entityName, oldState, newState, timeFired, origin) => //println(s"sensor $entityName -> ${newState.state}")
-
-    case LightTurnServiceCallEvent(service, fired, from) => println("Want " + service.turn + " lights: " + service.entityNames)
-    case SwitchTurnServiceCallEvent(service, fired, from) => println("Want " + service.turn + " switches: " + service.entityNames)
-
-    case a:StateChangedEvent[_] => println(a)
-    case a: ServiceCallEvent => println(a)
+    case SensorStateChangedEvent(_, _, _, _, _) =>
+    case a => println(a)
     case a: UnknownEvent => println("UNKNOWN: " + a.jsValue)
   }
 
-
-  System.in.read()
+  while (true) {
+    System.in.read()
+  }
   hass.close()
 
 

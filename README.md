@@ -15,7 +15,7 @@ The purpose is to provide a complete, easy and type safe library for interacting
 - [x] Switch (and switch groups)
 - [x] Sensor
 - [ ] Template sensor
-- [ ] Binary sensor
+- [x] Binary sensor
 - [x] InputBoolean
 - [x] InputDateTime
 - [ ] Sun

@@ -15,12 +15,16 @@ object StateParser extends JsonParser[EntityState[_]] {
     sensorStateParser,
     switchStateParser,
     lightStateParser,
+    binarySensorStateParser,
     inputBooleanStateParser,
     inputDateTimeStateParser,
     unknownEntityParser)
 
   def switchStateParser: JsonParser[SwitchState] =
     expectedStateParser(Switch.domain, SwitchState.apply)
+
+  def binarySensorStateParser: JsonParser[BinarySensorState] =
+    expectedStateParser(BinarySensor.domain, BinarySensorState.apply)
 
   def lightStateParser: JsonParser[LightState] =
     expectedStateParser(Light.domain, LightState.apply)
