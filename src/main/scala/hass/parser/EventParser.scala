@@ -14,15 +14,6 @@ object EventParser extends JsonParser[Event] {
     serviceCallEventParser,
     unknownEventParser)
 
-  def event: JsonParser[JsValue] = data =>
-    for ("event" <- str("type")(data);
-         event <- json("event")(data)) yield event
-
-  def originAndTimeFired: JsonParser[(String, DateTime)] = data =>
-    for (origin <- str("origin")(data);
-         timeFired <- datetime("time_fired")(data))
-      yield (origin, timeFired)
-
   def unknownEventParser: JsonParser[UnknownEvent] = data =>
     for (event <- event(data);
          (origin, timeFired) <- originAndTimeFired(event))
@@ -47,4 +38,13 @@ object EventParser extends JsonParser[Event] {
          oldState <- StateParser(oldStateData);
          newState <- StateParser(newStateData))
       yield StateChangedEvent(entityId, oldState, newState, timeFired, origin)
+
+  def event: JsonParser[JsValue] = data =>
+    for ("event" <- str("type")(data);
+         event <- json("event")(data)) yield event
+
+  def originAndTimeFired: JsonParser[(String, DateTime)] = data =>
+    for (origin <- str("origin")(data);
+         timeFired <- datetime("time_fired")(data))
+      yield (origin, timeFired)
 }

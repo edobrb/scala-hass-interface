@@ -27,6 +27,7 @@ trait ConnectionEvent extends Event {
 }
 
 case object ConnectionOpenEvent extends ConnectionEvent
+
 case object ConnectionClosedEvent extends ConnectionEvent
 
 

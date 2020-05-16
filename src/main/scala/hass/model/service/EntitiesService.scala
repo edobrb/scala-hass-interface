@@ -9,7 +9,7 @@ trait EntitiesService extends Service {
 
   def attributes: Map[String, JsValue] = Map()
 
-  def entityNames: Seq[String]
-
   def entityIds: Seq[String] = entityNames.map(n => s"$domain.$n")
+
+  def entityNames: Seq[String]
 }

@@ -20,6 +20,7 @@ object Hass {
   def apply(hassUrl: String, token: String, retryOnError: Boolean): Hass =
     new Hass(hassUrl, token, retryOnError)
 }
+
 class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observable[Event] {
 
   private val receiver: PartialFunction[String, Unit] = {
@@ -98,11 +99,11 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
         case _ => log wrn "Unknown json: " + json
       }
   }
-  private var client: Option[WebsocketClient[String]] = None
-  private var socket: Option[Websocket] = None
   private val nextIdLock = new Object()
   private val pendingRequest = scala.collection.mutable.Map[Long, CompletableFuture[Result]]()
   private val entityStates = scala.collection.mutable.Map[String, EntityState[_]]()
+  private var client: Option[WebsocketClient[String]] = None
+  private var socket: Option[Websocket] = None
   private var nextIdVar: Long = 0
 
   connect()
@@ -113,64 +114,8 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
     }
   }
 
-  private def nextId: Long = nextIdLock.synchronized {
-    nextIdVar = nextIdVar + 1
-    nextIdVar
-  }
-
-  private def connect(): Unit = {
-    ExecutionContext.global.execute(() => {
-      client match {
-        case Some(value) =>
-          client = None
-          socket = None
-          log inf "Closing..."
-          value.shutdownSync()
-          log inf "Closed..."
-        case None =>
-      }
-      log inf "Connecting..."
-      val clientBuilder = WebsocketClient.Builder.apply[String](s"ws://$hassUrl/api/websocket")(receiver).onFailure({
-        case exception =>
-          log err exception.getMessage
-          notifyObservers(ConnectionClosedEvent)
-          if(retryOnError) {
-            connect()
-          } else {
-            this.close()
-          }
-      })
-      client = Some(clientBuilder.build())
-      Try(client.get.open()) match {
-        case Failure(exception) =>
-          log err "While opening connection: " + exception.getMessage
-          notifyObservers(ConnectionClosedEvent)
-          if (retryOnError) {
-            connect()
-          } else {
-            this.close()
-          }
-        case Success(openSocket) =>
-          log inf "Connected."
-          socket = Some(openSocket)
-          openSocket ! "{\"type\":\"auth\",\"access_token\":\"" + token + "\"}"
-          notifyObservers(ConnectionOpenEvent)
-      }
-    })
-  }
-
-  private def ping(): Unit = {
-    ExecutionContext.global.execute(() => {
-      Thread.sleep(1000)
-      val pingFuture = send(id => "{\"id\":" + id + ",\"type\":\"ping\"}")
-      Try(Await.result(pingFuture, 2.seconds)) match {
-        case Failure(_) => log err "Not received pong response in 2 seconds!"
-          if(retryOnError) connect()
-          else close()
-        case Success(_) => ping()
-      }
-    })
-  }
+  def call(req: Service): scala.concurrent.Future[Result] =
+    send(id => req.materialize(id).toString())
 
   private def send(f: Long => String): scala.concurrent.Future[Result] = {
     import scala.compat.java8.FutureConverters._
@@ -189,8 +134,10 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
     }
   }
 
-  def call(req: Service): scala.concurrent.Future[Result] =
-    send(id => req.materialize(id).toString())
+  private def nextId: Long = nextIdLock.synchronized {
+    nextIdVar = nextIdVar + 1
+    nextIdVar
+  }
 
   def stateOf[E <: EntityState[_]](entity_id: String): Option[E] = entityStates.synchronized {
     if (entityStates.contains(entity_id)) {
@@ -223,5 +170,59 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
       client = None
       socket = None
     case None =>
+  }
+
+  private def connect(): Unit = {
+    ExecutionContext.global.execute(() => {
+      client match {
+        case Some(value) =>
+          client = None
+          socket = None
+          log inf "Closing..."
+          value.shutdownSync()
+          log inf "Closed..."
+        case None =>
+      }
+      log inf "Connecting..."
+      val clientBuilder = WebsocketClient.Builder.apply[String](s"ws://$hassUrl/api/websocket")(receiver).onFailure({
+        case exception =>
+          log err exception.getMessage
+          notifyObservers(ConnectionClosedEvent)
+          if (retryOnError) {
+            connect()
+          } else {
+            this.close()
+          }
+      })
+      client = Some(clientBuilder.build())
+      Try(client.get.open()) match {
+        case Failure(exception) =>
+          log err "While opening connection: " + exception.getMessage
+          notifyObservers(ConnectionClosedEvent)
+          if (retryOnError) {
+            connect()
+          } else {
+            this.close()
+          }
+        case Success(openSocket) =>
+          log inf "Connected."
+          socket = Some(openSocket)
+          openSocket ! "{\"type\":\"auth\",\"access_token\":\"" + token + "\"}"
+          notifyObservers(ConnectionOpenEvent)
+      }
+    })
+  }
+
+  private def ping(): Unit = {
+    ExecutionContext.global.execute(() => {
+      Thread.sleep(1000)
+      val pingFuture = send(id => "{\"id\":" + id + ",\"type\":\"ping\"}")
+      Try(Await.result(pingFuture, 2.seconds)) match {
+        case Failure(_) => log err "Not received pong response in 2 seconds!"
+          if (retryOnError) connect()
+          else close()
+        case Success(_) => ping()
+      }
+    })
   }
 }

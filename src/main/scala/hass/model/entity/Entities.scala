@@ -37,9 +37,15 @@ abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass
 }
 
 trait Turnable[S <: TurnService] {
-  def service(turn:TurnAction): S
+  def service(turn: TurnAction): S
 
   def hass: Hass
+
+  def turn(state: TurnAction): Future[Result] = state match {
+    case On => turnOn()
+    case Off => turnOff()
+    case Toggle => toggle()
+  }
 
   def turnOn(f: S => S = identity): Future[Result] = hass call f(service(On))
 
@@ -52,10 +58,4 @@ trait Turnable[S <: TurnService] {
   def turnOff(f: S => S = identity): Future[Result] = hass call f(service(Off))
 
   def toggle(f: S => S = identity): Future[Result] = hass call f(service(Toggle))
-
-  def turn(state: TurnAction): Future[Result] = state match {
-    case On => turnOn()
-    case Off => turnOff()
-    case Toggle => toggle()
-  }
 }

@@ -7,12 +7,6 @@ import play.api.libs.json.{JsValue, Json, Writes}
 case class LightTurnService(override val entityNames: Seq[String], override val turn: TurnAction, override val attributes: Map[String, JsValue] = Map())
   extends TurnService with Light.Domain {
 
-  def withRawAttribute(attribute: (String, JsValue)): LightTurnService = LightTurnService(entityNames, turn, attributes ++ Map(attribute))
-
-  def withAttribute[T: Writes](attribute: (String, T)): LightTurnService = attribute match {
-    case (name, value) => withRawAttribute(name -> Json.toJson(value))
-  }
-
   def transition(v: Int): LightTurnService = withAttribute("transition" -> v)
 
   def profile(name: String): LightTurnService = withAttribute("profile" -> name)
@@ -20,6 +14,12 @@ case class LightTurnService(override val entityNames: Seq[String], override val 
   def hs(h: Float, s: Float): LightTurnService = withAttribute("hs_color" -> Seq(h, s))
 
   def xy(x: Float, y: Float): LightTurnService = withAttribute("xy_color" -> Seq(x, y))
+
+  def withAttribute[T: Writes](attribute: (String, T)): LightTurnService = attribute match {
+    case (name, value) => withRawAttribute(name -> Json.toJson(value))
+  }
+
+  def withRawAttribute(attribute: (String, JsValue)): LightTurnService = LightTurnService(entityNames, turn, attributes ++ Map(attribute))
 
   def rgb(r: Int, g: Int, b: Int): LightTurnService = withAttribute("rgb_color" -> Seq(r, g, b))
 

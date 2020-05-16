@@ -21,10 +21,6 @@ object CommonParser {
     case _ => None
   }
 
-  def json(name: String): JsonParser[JsValue] = _ \ name
-
-  def value[T: Reads](name: String): JsonParser[T] = data => json(name)(data) flatMap (_.asOpt[T])
-
   def extract[T: Reads]: JsonParser[T] = _.asOpt[T]
 
   def str(name: String): JsonParser[String] = value[String](name)
@@ -34,6 +30,10 @@ object CommonParser {
   def strOrStrSeq(name: String): JsonParser[Seq[String]] = first(Seq(str(name).map(s => Seq(s)), strSeq(name)))
 
   def number(name: String): JsonParser[BigDecimal] = value[BigDecimal](name)
+
+  def value[T: Reads](name: String): JsonParser[T] = data => json(name)(data) flatMap (_.asOpt[T])
+
+  def json(name: String): JsonParser[JsValue] = _ \ name
 
   def long(name: String): JsonParser[Long] = value[Long](name)
 
@@ -55,6 +55,11 @@ object CommonParser {
     case _ => None
   }
 
+  def entityIdsSeq: Parser[Seq[String], Seq[(String, String)]] = ids =>
+    Some(for (id <- ids;
+              (domain, name) <- entityIds(id))
+      yield (domain, name))
+
   def entityIds: Parser[String, (String, String)] = entityId => {
     val spl = entityId.split('.')
     if (spl.length == 2) {
@@ -63,12 +68,6 @@ object CommonParser {
       None
     }
   }
-
-  def entityIdsSeq: Parser[Seq[String], Seq[(String, String)]] = ids =>
-    Some(for (id <- ids;
-              (domain, name) <- entityIds(id))
-      yield (domain, name))
-
 
   def first[I, O](parsers: Seq[I => Option[O]]): Parser[I, O] = input =>
     (for (parser <- parsers;

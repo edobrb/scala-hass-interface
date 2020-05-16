@@ -23,4 +23,5 @@ trait MetaService {
   trait Service extends MetaService {
     override val service: ServiceType = MetaService.this.service
   }
+
 }

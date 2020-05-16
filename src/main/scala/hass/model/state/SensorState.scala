@@ -14,12 +14,12 @@ case class SensorState(override val entity_name: String,
                        override val attributes: Option[JsObject])
   extends EntityState[String] with Sensor.Domain {
 
-  private def tryState[T](r: => T): Option[T] = Try(r).toOption
-
   def numericState: Option[Double] = tryState(state.toDouble)
 
   def datetimeState: Option[DateTime] = tryState(DateTime.parse(state))
 
   def booleanState: Option[Boolean] = tryState(state.toBoolean)
+
+  private def tryState[T](r: => T): Option[T] = Try(r).toOption
 }
 
