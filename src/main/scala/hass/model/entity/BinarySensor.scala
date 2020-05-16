@@ -7,7 +7,7 @@ import hass.model.state._
 import hass.model.state.ground.TurnState
 
 object BinarySensor extends MetaDomain {
-  def domain: DomainType = "binary_sensor"
+  val domain: DomainType = "binary_sensor"
 
   def apply()(implicit name: sourcecode.Name, hass: Hass): BinarySensor = BinarySensor(name.value)(hass)
 }

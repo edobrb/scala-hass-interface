@@ -53,17 +53,17 @@ object StateParser extends JsonParser[EntityState[_]] {
       yield f(entityName, state, lastChanged, lastUpdated, attributes)
 
   def stateParser[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
-    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfo(data);
+    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfoParser(data);
          state <- value[T]("state").apply(data))
       yield (domain, name, state, lastChanged, lastUpdated, attributes)
 
   def stateParserFromAttributes[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
-    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfo(data);
+    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfoParser(data);
          attrs <- attributes;
          state <- extract[T].apply(attrs))
       yield (domain, name, state, lastChanged, lastUpdated, attributes)
 
-  def defaultInfo: JsonParser[(String, String, DateTime, DateTime, Option[JsObject])] = data =>
+  def defaultInfoParser: JsonParser[(String, String, DateTime, DateTime, Option[JsObject])] = data =>
     for (entityId <- str("entity_id")(data);
          (domain, name) <- entityIds(entityId);
          lastChanged <- datetime("last_changed")(data);

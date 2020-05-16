@@ -9,7 +9,7 @@ import hass.model.state._
 import hass.model.state.ground.{TurnAction, TurnState}
 
 object Switch extends MetaDomain {
-  def domain: DomainType = "switch"
+  val domain: DomainType = "switch"
 
   def apply()(implicit switch_name: sourcecode.Name, hass: Hass): Switch = Switch(switch_name.value)(hass)
 }

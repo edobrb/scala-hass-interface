@@ -8,7 +8,7 @@ import hass.model.state.InputBooleanState
 import hass.model.state.ground.{TurnAction, TurnState}
 
 object InputBoolean extends MetaDomain {
-  def domain: DomainType = "input_boolean"
+  val domain: DomainType = "input_boolean"
 
   def apply()(implicit input_boolean_name: sourcecode.Name, hass: Hass): InputBoolean = InputBoolean(input_boolean_name.value)(hass)
 }

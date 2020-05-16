@@ -9,18 +9,18 @@ object Types {
 }
 
 trait MetaDomain {
-  def domain: DomainType
+  val domain: DomainType
 
   trait Domain extends MetaDomain {
-    override def domain: DomainType = MetaDomain.this.domain
+    override val domain: DomainType = MetaDomain.this.domain
   }
 
 }
 
 trait MetaService {
-  def service: ServiceType
+  val service: ServiceType
 
   trait Service extends MetaService {
-    override def service: ServiceType = MetaService.this.service
+    override val service: ServiceType = MetaService.this.service
   }
 }

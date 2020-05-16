@@ -9,7 +9,7 @@ import hass.model.state._
 import hass.model.state.ground.{TurnAction, TurnState}
 
 object Light extends MetaDomain {
-  def domain: DomainType = "light"
+  val domain: DomainType = "light"
 
   def apply()(implicit light_name: sourcecode.Name, hass: Hass): Light = Light(light_name.value)(hass)
 }

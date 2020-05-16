@@ -24,27 +24,22 @@ object ServiceParser extends JsonParser[Service] {
     turnServiceParser(Light, LightTurnService.apply)
 
   def switchTurnServiceParser: JsonParser[SwitchTurnService] =
-    turnServiceParser(Switch, SwitchTurnService.apply)
+    turnServiceParser2(Switch, SwitchTurnService.apply)
 
   def inputBooleanTurnServiceParser: JsonParser[InputBooleanTurnService] =
     turnServiceParser2(InputBoolean, InputBooleanTurnService.apply)
 
   def inputDatetimeSetServiceParser: JsonParser[InputDateTimeSetService] = data =>
-    for ((domain, service, serviceData) <- elementParser(data)
-         if domain == InputDateTime.domain
-         if service == InputDateTime.service;
+    for ((InputDateTime.domain, InputDateTime.service, serviceData) <- defaultInfoParser(data);
          entityIds <- strOrStrSeq("entity_id")(serviceData);
-         value <- extract[TimeOrDate].apply(serviceData)) yield
-      InputDateTimeSetService(entityIds, value)
+         timeOrDate <- extract[TimeOrDate].apply(serviceData))
+      yield InputDateTimeSetService(entityIds, timeOrDate)
 
   def unknownServiceParser: JsonParser[Service] =
-    elementParser.map { case (domain, service, serviceData) => UnknownService(domain, service, serviceData) }
+    defaultInfoParser.map { case (domain, service, serviceData) => UnknownService(domain, service, serviceData) }
 
-
-  def turnServiceParser[T](expectedDomain: MetaDomain,
-                           f: (Seq[String], TurnAction, Map[String, JsValue]) => T): JsonParser[T] = data => {
-    for ((domain, service, serviceData) <- elementParser(data)
-         if domain == expectedDomain.domain;
+  def turnServiceParser[T](expectedDomain: MetaDomain, f: (Seq[String], TurnAction, Map[String, JsValue]) => T): JsonParser[T] = data => {
+    for ((expectedDomain.domain, service, serviceData) <- defaultInfoParser(data);
          turn <- turnAction(service);
          entityIds <- strOrStrSeq("entity_id")(serviceData);
          entityIdsSplit <- entityIdsSeq(entityIds);
@@ -55,7 +50,7 @@ object ServiceParser extends JsonParser[Service] {
   def turnServiceParser2[T](expectedDomain: MetaDomain, f: (Seq[String], TurnAction) => T): JsonParser[T] =
     turnServiceParser(expectedDomain, (e, s, _) => f(e, s))
 
-  def elementParser: JsonParser[(DomainType, ServiceType, JsObject)] = data =>
+  def defaultInfoParser: JsonParser[(DomainType, ServiceType, JsObject)] = data =>
     for (domain <- str("domain")(data);
          service <- str("service")(data);
          serviceData <- jsonObj("service_data")(data))

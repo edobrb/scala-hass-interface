@@ -10,9 +10,9 @@ import hass.model.{MetaDomain, MetaService}
 import scala.concurrent.Future
 
 object InputDateTime extends MetaDomain with MetaService {
-  override def service: ServiceType = "set_datetime"
+  override val service: ServiceType = "set_datetime"
 
-  override def domain: DomainType = "input_datetime"
+  override val domain: DomainType = "input_datetime"
 
   def apply()(implicit light_name: sourcecode.Name, hass: Hass): InputDateTime = InputDateTime(light_name.value)(hass)
 }

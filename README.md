@@ -11,11 +11,11 @@ The purpose is to provide a complete, easy and type safe library for interacting
 - [x] Token authentication
 - [x] Auto-reconnection
 ##### Supported entities and relative services
-- [x] Light (and light groups)
-- [x] Switch (and switch groups)
+- [x] Light
+- [x] Switch
 - [x] Sensor
-- [ ] Template sensor
-- [x] Binary sensor
+- [ ] Template
+- [x] BinarySensor
 - [x] InputBoolean
 - [x] InputDateTime
 - [ ] Sun
@@ -23,7 +23,6 @@ The purpose is to provide a complete, easy and type safe library for interacting
 - [ ] Person
 - [ ] Automation
 - [ ] Script
-- [ ] Areas
 
 ### Usage
 

@@ -32,7 +32,9 @@ object Test extends App {
   irrigazione_davanti_cond1.onState {
     case a => println(a._1)
   }
-
+  prova_data_tempo.onState {
+    case a => println(a._1)
+  }
   hass.onConnection { () =>
     lampada_edo.turnOn(_.hs(300, 55))
     irrigazione_davanti_martedi.toggle()
