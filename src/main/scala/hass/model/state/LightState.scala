@@ -5,10 +5,10 @@ import hass.model.entity.Light
 import play.api.libs.json.JsObject
 
 case class LightState(override val entity_name: String,
-                      state: TurnState,
-                      lastChanged: DateTime,
-                      lastUpdated: DateTime,
-                      attributes: Option[JsObject]) extends EntityState[TurnState] with Light.Domain {
+                      override val state: TurnState,
+                      override val lastChanged: DateTime,
+                      override val lastUpdated: DateTime,
+                      override val attributes: Option[JsObject]) extends EntityState[TurnState] with Light.Domain {
 
   def brightness: Option[Int] = attribute[Int]("brightness")
 

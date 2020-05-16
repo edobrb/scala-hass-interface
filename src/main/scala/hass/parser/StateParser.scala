@@ -32,7 +32,7 @@ object StateParser extends JsonParser[EntityState[_]] {
     expectedStateParser(InputBoolean.domain, InputBooleanState.apply)
 
   def inputDateTimeStateParser: JsonParser[InputDateTimeState] =
-    expectedStateParser(InputDateTime.domain, InputDateTimeState.apply)
+    expectedStateParserFromAttributes(InputDateTime.domain, InputDateTimeState.apply)
 
   def unknownEntityParser: JsonParser[UnknownEntityState] = data =>
     for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[String](implicitly[Reads[String]])(data))
@@ -43,12 +43,27 @@ object StateParser extends JsonParser[EntityState[_]] {
          if domain == expectedDomain)
       yield f(entityName, state, lastChanged, lastUpdated, attributes)
 
+  def expectedStateParserFromAttributes[T: Reads, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K): JsonParser[K] = data =>
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParserFromAttributes[T](implicitly[Reads[T]])(data)
+         if domain == expectedDomain)
+      yield f(entityName, state, lastChanged, lastUpdated, attributes)
+
   def stateParser[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
+    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfo(data);
+         state <- value[T]("state").apply(data))
+      yield (domain, name, state, lastChanged, lastUpdated, attributes)
+
+  def stateParserFromAttributes[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
+    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfo(data);
+         attrs <- attributes;
+         state <- extract[T].apply(attrs))
+      yield (domain, name, state, lastChanged, lastUpdated, attributes)
+
+  def defaultInfo: JsonParser[(String, String, DateTime, DateTime, Option[JsObject])] = data =>
     for (entityId <- str("entity_id")(data);
          (domain, name) <- entityIds(entityId);
          lastChanged <- datetime("last_changed")(data);
          lastUpdated <- datetime("last_updated")(data);
-         state <- value[T]("state")(implicitly[Reads[T]])(data);
          attributes = jsonObj("attributes")(data))
-      yield (domain, name, state, lastChanged, lastUpdated, attributes)
+      yield (domain, name, lastChanged, lastUpdated, attributes)
 }

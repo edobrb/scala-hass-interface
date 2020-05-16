@@ -1,8 +1,8 @@
 import hass.controller.Hass
 import hass.model.entity._
 import hass.model.event._
-import hass.model.service.LightTurnService
-import hass.model.state.On
+import hass.model.service.{LightTurnService, UnknownService}
+import hass.model.state.{DateAndTime, On}
 import org.joda.time.DateTime
 
 import scala.util.Try
@@ -27,18 +27,21 @@ object Test extends App {
   val luce_letto_edo = Switch()
   val consumo_garage = Sensor()
   val irrigazione_davanti_martedi = InputBoolean()
-  val irrigazione_davanti_inizio = InputDateTime()
+  val prova_data_tempo = InputDateTime()
 
+  irrigazione_davanti_martedi.onState {
+    case a => println(a._1)
+  }
+  prova_data_tempo.onState {
+    case a => println(a._1)
+  }
   hass.onConnection { () =>
-    lampada_edo.turnOn(_.kelvin(44))
-    irrigazione_davanti_martedi.turnOn()
-    irrigazione_davanti_inizio.setTime(DateTime.now().toLocalTime)
+    irrigazione_davanti_martedi.toggle()
+    prova_data_tempo.set(DateAndTime(DateTime.now()))
   }
+
   hass.onClose(() => println("Closed"))
-  lampada_edo.onState {
-    case (On, time, state) if state.brightness.exists(_ < 255) =>
-      lampada_edo.turnOn(_.brightness(255))
-  }
+
   hass.onEvent {
     case SwitchStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"switch $entityName -> ${newState.state}")
     case LightStateChangedEvent(entityName, oldState, newState, timeFired, origin) => println(s"light $entityName -> ${newState.state}")
@@ -47,14 +50,12 @@ object Test extends App {
     case LightTurnServiceCallEvent(service, fired, from) => println("Want " + service.turn + " lights: " + service.entityNames)
     case SwitchTurnServiceCallEvent(service, fired, from) => println("Want " + service.turn + " switches: " + service.entityNames)
 
-    case a: StateChangedEvent[_] => println(a)
+    case a:StateChangedEvent[_] => println(a)
     case a: ServiceCallEvent => println(a)
-    case a: UnknownEvent => println(a)
+    case a: UnknownEvent => println("UNKNOWN: " + a.jsValue)
   }
 
-  val turnOnAllMyLight = LightTurnService(Seq("my_lamp", "my_other_lamp"), On).brightness(255)
-  hass call turnOnAllMyLight
-lampada_edo.toggle()
+
   System.in.read()
   hass.close()
 

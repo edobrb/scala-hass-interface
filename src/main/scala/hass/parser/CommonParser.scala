@@ -25,6 +25,8 @@ object CommonParser {
 
   def value[T: Reads](name: String): JsonParser[T] = data => json(name)(data) flatMap (_.asOpt[T])
 
+  def extract[T: Reads]: JsonParser[T] = _.asOpt[T]
+
   def str(name: String): JsonParser[String] = value[String](name)
 
   def strSeq(name: String): JsonParser[Seq[String]] = value[Seq[String]](name)
@@ -34,6 +36,8 @@ object CommonParser {
   def number(name: String): JsonParser[BigDecimal] = value[BigDecimal](name)
 
   def long(name: String): JsonParser[Long] = value[Long](name)
+
+  def int(name: String): JsonParser[Int] = value[Int](name)
 
   def bool(name: String): JsonParser[Boolean] = value[Boolean](name)
 

@@ -7,7 +7,7 @@ trait EntitiesService extends Service {
     case (obj, att) => obj + att
   }) + ("entity_id" -> JsArray(entityIds.map(JsString.apply)))
 
-  def attributes: Map[String, JsValue]
+  def attributes: Map[String, JsValue] = Map()
 
   def entityNames: Seq[String]
 

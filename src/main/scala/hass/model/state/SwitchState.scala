@@ -5,6 +5,10 @@ import hass.model.entity.Switch
 import play.api.libs.json.JsObject
 
 
-case class SwitchState(override val entity_name: String, state: TurnState, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject])
+case class SwitchState(override val entity_name: String,
+                       override val state: TurnState,
+                       override val lastChanged: DateTime,
+                       override val lastUpdated: DateTime,
+                       override val attributes: Option[JsObject])
   extends EntityState[TurnState] with Switch.Domain
 

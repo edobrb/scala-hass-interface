@@ -5,7 +5,11 @@ import hass.model.entity.InputBoolean
 import play.api.libs.json.JsObject
 
 
-case class InputBooleanState(override val entity_name: String, state: TurnState, lastChanged: DateTime, lastUpdated: DateTime, attributes: Option[JsObject])
+case class InputBooleanState(override val entity_name: String,
+                             override val state: TurnState,
+                             override val lastChanged: DateTime,
+                             override val lastUpdated: DateTime,
+                             override val attributes: Option[JsObject])
   extends EntityState[TurnState] with InputBoolean.Domain {
 
   def booleanState: Option[Boolean] = state match {

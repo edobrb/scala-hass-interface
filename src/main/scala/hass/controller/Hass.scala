@@ -164,7 +164,9 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
       Thread.sleep(1000)
       val pingFuture = send(id => "{\"id\":" + id + ",\"type\":\"ping\"}")
       Try(Await.result(pingFuture, 2.seconds)) match {
-        case Failure(_) => log err "Not received pong response in 2 seconds!" //TODO
+        case Failure(_) => log err "Not received pong response in 2 seconds!"
+          if(retryOnError) connect()
+          else close()
         case Success(_) => ping()
       }
     })
