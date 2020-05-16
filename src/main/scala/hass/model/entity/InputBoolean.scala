@@ -3,13 +3,16 @@ package hass.model.entity
 import hass.controller.Hass
 import hass.model.MetaDomain
 import hass.model.Types.DomainType
-import hass.model.state.{InputBooleanState, TurnState}
+import hass.model.service.InputBooleanTurnService
+import hass.model.state.{InputBooleanState, TurnAction, TurnState}
 
 object InputBoolean extends MetaDomain {
   def domain: DomainType = "input_boolean"
 
-  def apply()(implicit light_name: sourcecode.Name, hass: Hass): Light = Light(light_name.value)(hass)
+  def apply()(implicit input_boolean_name: sourcecode.Name, hass: Hass): InputBoolean = InputBoolean(input_boolean_name.value)(hass)
 }
 
-case class InputBoolean(entity_name: String)(implicit hass: Hass)
-  extends StatefulEntity[TurnState, InputBooleanState]() with InputBoolean.Domain
+case class InputBoolean(entity_name: String)(override implicit val hass: Hass)
+  extends StatefulEntity[TurnState, InputBooleanState]() with Turnable[InputBooleanTurnService] with InputBoolean.Domain {
+  override def service(turn: TurnAction): InputBooleanTurnService = InputBooleanTurnService(Seq(entity_name), turn)
+}

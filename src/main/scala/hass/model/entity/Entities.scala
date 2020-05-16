@@ -7,6 +7,7 @@ import hass.model.common.Observable
 import hass.model.event.StateChangedEvent
 import hass.model.service.{Result, Service, TurnService}
 import hass.model.state._
+import org.joda.time.DateTime
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -20,22 +21,18 @@ sealed trait Entity extends MetaDomain {
 
 case class UnknownEntity(entity_name: String, override val domain: String) extends Entity
 
-abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass: Hass) extends Entity with Observable[E] {
+abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass: Hass) extends Entity with Observable[(S, DateTime, E)] {
   private var _state: Option[E] = hass.stateOf(entity_id)
 
   hass onEvent {
     case StateChangedEvent(id, _, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entity_id =>
       _state = Some(newState)
-      notifyObservers(newState)
+      notifyObservers((newState.state, newState.lastChanged, newState))
   }
 
   def state: Option[E] = _state
 
-  def onStateValueChange(f: PartialFunction[S, Unit]): Unit = addObserver({
-    case entityState if f.isDefinedAt(entityState.state) => f(entityState.state)
-  })
-
-  def onStateChange(f: PartialFunction[E, Unit]): Unit = addObserver(f)
+  def onState(f: PartialFunction[(S, DateTime, E), Unit]): Unit = addObserver(f)
 }
 
 trait Turnable[S <: TurnService] {
