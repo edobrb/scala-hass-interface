@@ -12,13 +12,13 @@ sealed trait TurnAction extends MetaService
 case object On extends TurnState with TurnAction {
   def unary_! : TurnState = Off
 
-  override def service: ServiceType = "turn_on"
+  override val service: ServiceType = "turn_on"
 }
 
 case object Off extends TurnState with TurnAction {
   def unary_! : TurnState = On
 
-  override def service: ServiceType = "turn_off"
+  override val service: ServiceType = "turn_off"
 }
 
 case object Unavailable extends TurnState {
@@ -26,7 +26,7 @@ case object Unavailable extends TurnState {
 }
 
 case object Toggle extends TurnAction {
-  override def service: ServiceType = "toggle"
+  override val service: ServiceType = "toggle"
 }
 
 

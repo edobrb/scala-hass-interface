@@ -20,6 +20,8 @@ trait EntityState[T] {
 
   def attribute[A: Reads](name: String): Option[A] =
     attributes.flatMap(_.fields.collectFirst { case (`name`, value) => value }).map(_.as[A])
+
+  def friendlyName: Option[String] = attribute[String]("friendly_name")
 }
 
 object EntityState {

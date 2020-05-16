@@ -5,5 +5,5 @@ import hass.model.state.ground.TurnAction
 
 trait TurnService extends EntitiesService {
   def turn: TurnAction
-  override def service: ServiceType = turn.service
+  override val service: ServiceType = turn.service
 }

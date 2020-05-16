@@ -13,4 +13,5 @@ libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.24.0"
 
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1"
 
-
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.1"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
