@@ -2,6 +2,7 @@ package hass.model.state
 
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.entity.Switch
+import hass.model.state.ground.TurnState
 import play.api.libs.json.JsObject
 
 

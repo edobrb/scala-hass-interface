@@ -6,6 +6,7 @@ import hass.model.MetaDomain
 import hass.model.Types.DomainType
 import hass.model.service.SwitchTurnService
 import hass.model.state._
+import hass.model.state.ground.{TurnAction, TurnState}
 
 object Switch extends MetaDomain {
   def domain: DomainType = "switch"

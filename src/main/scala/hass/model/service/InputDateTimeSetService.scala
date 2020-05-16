@@ -1,7 +1,7 @@
 package hass.model.service
 
 import hass.model.entity.InputDateTime
-import hass.model.state.TimeOrDate
+import hass.model.state.ground.TimeOrDate
 import play.api.libs.json.{JsString, JsValue}
 
 case class InputDateTimeSetService(override val entityNames: Seq[String], state: TimeOrDate)

@@ -4,7 +4,8 @@ import hass.controller.Hass
 import hass.model.MetaDomain
 import hass.model.Types.DomainType
 import hass.model.service.InputBooleanTurnService
-import hass.model.state.{InputBooleanState, TurnAction, TurnState}
+import hass.model.state.InputBooleanState
+import hass.model.state.ground.{TurnAction, TurnState}
 
 object InputBoolean extends MetaDomain {
   def domain: DomainType = "input_boolean"

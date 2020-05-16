@@ -4,10 +4,10 @@ import hass.model.MetaDomain
 import hass.model.Types.{DomainType, ServiceType}
 import hass.model.entity.{InputBoolean, InputDateTime, Light}
 import hass.model.service._
-import hass.model.state.{TimeOrDate, TurnAction}
+import hass.model.state.ground.{TimeOrDate, TurnAction}
 import hass.parser.CommonParser._
+import hass.parser.ImplicitReads._
 import play.api.libs.json.{JsObject, JsValue}
-import ImplicitReads._
 
 object ServiceParser extends JsonParser[Service] {
 

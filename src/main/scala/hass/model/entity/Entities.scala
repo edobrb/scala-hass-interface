@@ -5,8 +5,9 @@ import hass.controller.Hass
 import hass.model.MetaDomain
 import hass.model.common.Observable
 import hass.model.event.StateChangedEvent
-import hass.model.service.{Result, Service, TurnService}
+import hass.model.service.{Result, TurnService}
 import hass.model.state._
+import hass.model.state.ground.{Off, On, Toggle, TurnAction}
 import org.joda.time.DateTime
 
 import scala.concurrent.Future

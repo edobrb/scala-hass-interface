@@ -2,6 +2,7 @@ package hass.model.state
 
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.entity.InputBoolean
+import hass.model.state.ground.{Off, On, TurnState, Unavailable}
 import play.api.libs.json.JsObject
 
 

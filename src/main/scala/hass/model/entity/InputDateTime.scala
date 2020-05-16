@@ -4,6 +4,7 @@ import hass.controller.Hass
 import hass.model.Types.{DomainType, ServiceType}
 import hass.model.service.{InputDateTimeSetService, Result}
 import hass.model.state._
+import hass.model.state.ground.TimeOrDate
 import hass.model.{MetaDomain, MetaService}
 
 import scala.concurrent.Future

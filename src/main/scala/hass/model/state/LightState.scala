@@ -2,6 +2,7 @@ package hass.model.state
 
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.entity.Light
+import hass.model.state.ground.TurnState
 import play.api.libs.json.JsObject
 
 case class LightState(override val entity_name: String,

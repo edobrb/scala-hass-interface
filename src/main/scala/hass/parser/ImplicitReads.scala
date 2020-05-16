@@ -1,7 +1,7 @@
 package hass.parser
 
 import com.github.nscala_time.time.Imports.{DateTime, DateTimeZone}
-import hass.model.state._
+import hass.model.state.ground._
 import hass.parser.CommonParser._
 import org.joda.time.LocalTime
 import org.joda.time.format.DateTimeFormat

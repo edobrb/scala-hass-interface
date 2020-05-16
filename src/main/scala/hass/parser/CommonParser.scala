@@ -3,7 +3,7 @@ package hass.parser
 
 import com.github.nscala_time.time.Imports.DateTime
 import hass.model.Types.ServiceType
-import hass.model.state.{Off, On, Toggle, TurnAction}
+import hass.model.state.ground.{Off, On, Toggle, TurnAction}
 import hass.parser.ImplicitReads._
 import play.api.libs.json._
 

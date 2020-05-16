@@ -1,7 +1,7 @@
 package hass.model.service
 
 import hass.model.entity.Light
-import hass.model.state.TurnAction
+import hass.model.state.ground.TurnAction
 import play.api.libs.json.{JsValue, Json, Writes}
 
 case class LightTurnService(override val entityNames: Seq[String], override val turn: TurnAction, override val attributes: Map[String, JsValue] = Map())

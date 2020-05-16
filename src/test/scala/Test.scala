@@ -2,7 +2,7 @@ import hass.controller.Hass
 import hass.model.entity._
 import hass.model.event._
 import hass.model.service.{LightTurnService, UnknownService}
-import hass.model.state.{DateAndTime, On}
+import hass.model.state.ground.DateAndTime
 import org.joda.time.DateTime
 
 import scala.util.Try
