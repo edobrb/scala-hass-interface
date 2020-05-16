@@ -1,6 +1,7 @@
 # scala-hass-interface
 [![](https://jitpack.io/v/edobrb/scala-hass-interface.svg)](https://jitpack.io/#edobrb/scala-hass-interface)
 [![Build Status](https://travis-ci.com/edobrb/scala-hass-interface.svg?branch=master)](https://travis-ci.com/edobrb/scala-hass-interface)
+[![codecov](https://codecov.io/gh/edobrb/scala-hass-interface/branch/master/graph/badge.svg)](https://codecov.io/gh/edobrb/scala-hass-interface)
 ### Purpose
 This artifact aims to create a bridge between Home Assistant web API and any JVM software.
 The purpose is to provide a complete, easy and type safe library for interacting with Hass from the JVM.
