@@ -4,19 +4,19 @@ import hass.model.state.{LightState, SwitchState, UnknownEntityState}
 import hass.model.state.ground.{Off, On, Unavailable}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 
 class StateParserTest extends FunSuite {
 
-  private val lightState1 = Json.parse("{\"entity_id\":\"light.bed_light\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"on\",\"attributes\":{\"rgb_color\":[254,208,0],\"color_temp\":380,\"supported_features\":147,\"xy_color\":[0.5,0.5],\"brightness\":180,\"white_value\":200,\"friendly_name\":\"Bed Light\"},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val lightState2 = Json.parse("{\"entity_id\":\"light.bed_light\",\"last_changed\":\"2016-11-26T01:37:24.265390+00:00\",\"state\":\"on\",\"attributes\":{\"color_temp\":380,\"supported_features\":147,\"hs_color\":[0.5,0.5],\"brightness\":180,\"white_value\":200,\"friendly_name\":\"Bed Light\"},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val switchState1 = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"off\",\"attributes\":{\"friendly_name\":\"Garage Switch\"},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val switchState2 = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val unknownState1 = Json.parse("{\"entity_id\":\"some_domain.some_name\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val wrongState1 = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val wrongState2 = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\"}")
-  private val wrongState3 = Json.parse("{\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
-  private val wrongState4 = Json.parse("{\"entity_id\":\"switch_garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val lightState1: JsValue = Json.parse("{\"entity_id\":\"light.bed_light\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"on\",\"attributes\":{\"rgb_color\":[254,208,0],\"color_temp\":380,\"supported_features\":147,\"xy_color\":[0.5,0.5],\"brightness\":180,\"white_value\":200,\"friendly_name\":\"Bed Light\"},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val lightState2: JsValue = Json.parse("{\"entity_id\":\"light.bed_light\",\"last_changed\":\"2016-11-26T01:37:24.265390+00:00\",\"state\":\"on\",\"attributes\":{\"color_temp\":380,\"supported_features\":147,\"hs_color\":[0.5,0.5],\"brightness\":180,\"white_value\":200,\"friendly_name\":\"Bed Light\"},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val switchState1: JsValue = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"off\",\"attributes\":{\"friendly_name\":\"Garage Switch\"},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val switchState2: JsValue = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val unknownState1: JsValue = Json.parse("{\"entity_id\":\"some_domain.some_name\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val wrongState1: JsValue = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val wrongState2: JsValue = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\"}")
+  val wrongState3: JsValue = Json.parse("{\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val wrongState4: JsValue = Json.parse("{\"entity_id\":\"switch_garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
   test("Parse light state 1") {
     StateParser(lightState1) match {
       case Some(s: LightState) =>
