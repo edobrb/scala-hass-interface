@@ -1,7 +1,7 @@
 package hass.parser
 
-import hass.model.state.{LightState, SwitchState, UnknownEntityState}
-import hass.model.state.ground.{Off, On, Unavailable}
+import hass.model.state.ground._
+import hass.model.state.{InputDateTimeState, LightState, SwitchState, UnknownEntityState}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.scalatest._
 import play.api.libs.json.{JsValue, Json}
@@ -17,6 +17,10 @@ class StateParserTest extends FunSuite {
   val wrongState2: JsValue = Json.parse("{\"entity_id\":\"switch.garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\"}")
   val wrongState3: JsValue = Json.parse("{\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
   val wrongState4: JsValue = Json.parse("{\"entity_id\":\"switch_garage_switch\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"unavailable\",\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+
+  val inputDatetimeState1: JsValue = Json.parse("{\"entity_id\":\"input_datetime.date_and_time\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"2020-12-25 13:56:13\",\"attributes\":{\"has_date\":true,\"has_time\":true,\"timestamp\":50173,\"year\":2020,\"month\":12,\"day\":25},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+  val inputDatetimeState2: JsValue = Json.parse("{\"entity_id\":\"input_datetime.date_and_time\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"2020-12-25 13:56:13\",\"attributes\":{\"has_date\":true,\"has_time\":true,\"hour\":13,\"minute\":56,\"second\":13,\"year\":2020,\"month\":12,\"day\":25},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
+
   test("Parse light state 1") {
     StateParser(lightState1) match {
       case Some(s: LightState) =>
@@ -88,5 +92,16 @@ class StateParserTest extends FunSuite {
     assert(StateParser(wrongState2).isEmpty)
     assert(StateParser(wrongState3).isEmpty)
     assert(StateParser(wrongState4).isEmpty)
+  }
+  test("Input datetime states") {
+    Seq(inputDatetimeState1, inputDatetimeState2).map(StateParser.apply).foreach {
+      case Some(s: InputDateTimeState) =>
+        assert(s.entity_name == "date_and_time")
+        assert(s.entity_id == "input_datetime.date_and_time")
+        assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
+        assert(s.state == DateAndTime(Date(2020, 12, 25), Time(13, 56, 13)))
+        assert(s.lastUpdated.getMillis - new DateTime(2016, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
+      case _ => fail()
+    }
   }
 }

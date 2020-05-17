@@ -34,6 +34,11 @@ object ImplicitReads {
              second <- int("second")(data))
           yield Time(hour, minute, second)
 
+      val timeParser2: JsonParser[Time] = data =>
+        for (true <- bool("has_time")(data);
+             timestamp <- int("timestamp")(data))
+          yield Time(timestamp / 3600, (timestamp % 3600) / 60, (timestamp % 3600) % 60)
+
       val dateParser1: JsonParser[Date] = data =>
         for (true <- bool("has_date")(data);
              year <- int("year")(data);
@@ -42,12 +47,12 @@ object ImplicitReads {
           yield Date(year, month, day)
 
       val datetimeParser1: JsonParser[DateAndTime] = data =>
-        for (time <- timeParser1(data);
+        for (time <- first(Seq(timeParser1, timeParser2))(data);
              date <- dateParser1(data))
           yield DateAndTime(date, time)
 
       //Reads from serviceData of a service
-      val timeParser2: JsonParser[Time] = data => for (time <- value[LocalTime]("time").apply(data)) yield Time(time)
+      val timeParser3: JsonParser[Time] = data => for (time <- value[LocalTime]("time").apply(data)) yield Time(time)
       val dateParser2: JsonParser[Date] = data => for (date <- value[DateTime]("date").apply(data)) yield Date(date)
       val datetimeParser2: JsonParser[DateAndTime] = data =>
         for (time <- timeParser2(data);
@@ -56,7 +61,7 @@ object ImplicitReads {
       val datetimeParser3: JsonParser[DateAndTime] = data => for (datetime <- value[DateTime]("datetime").apply(data))
         yield DateAndTime(datetime)
 
-      first(Seq(datetimeParser1, dateParser1, timeParser1,
+      first(Seq(datetimeParser1, dateParser1, timeParser1, timeParser3,
         datetimeParser2, dateParser2, timeParser2, datetimeParser3))(attributes)
         .map(t => JsSuccess(t))
         .getOrElse(JsError("Invalid TimeOrDate format"))
