@@ -8,23 +8,23 @@ The purpose is to provide a complete, easy and type safe library for interacting
 [Hass Websocket documentation.](https://developers.home-assistant.io/docs/api/websocket/)
 
 ## Features
- - [x] Connection via websocket
- - [x] Token authentication
- - [x] Auto-reconnection
+-   [x] Connection via websocket
+-   [x] Token authentication
+-   [x] Auto-reconnection
  
 Supported entities and relative services:
- - [x] Light
- - [x] Switch
- - [x] Sensor
- - [ ] Template
- - [x] BinarySensor
- - [x] InputBoolean
- - [x] InputDateTime
- - [ ] Sun
- - [ ] Weather
- - [ ] Person
- - [ ] Automation
- - [ ] Script
+-   [x] Light
+-   [x] Switch
+-   [x] Sensor
+-   [ ] Template
+-   [x] BinarySensor
+-   [x] InputBoolean
+-   [x] InputDateTime
+-   [ ] Sun
+-   [ ] Weather
+-   [ ] Person
+-   [ ] Automation
+-   [ ] Script
 
 ## Usage
 

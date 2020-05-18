@@ -23,15 +23,15 @@ sealed trait Entity extends MetaDomain {
 case class UnknownEntity(entityName: String, override val domain: String) extends Entity
 
 abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass: Hass) extends Entity with Observable[(S, DateTime, E)] {
-  private var internalState: Option[E] = hass.stateOf(entityId)
+  //private var internalState: Option[E] = hass.stateOf(entityId)
 
   hass onEvent {
     case StateChangedEvent(id, _, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entityId =>
-      internalState = Some(newState)
+      //internalState = Some(newState)
       notifyObservers((newState.state, newState.lastChanged, newState))
   }
 
-  def state: Option[E] = internalState
+  //def state: Option[E] = internalState
 
   def onState(f: PartialFunction[(S, DateTime, E), Unit]): Unit = addObserver(f)
 }

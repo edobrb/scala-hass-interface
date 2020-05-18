@@ -2,10 +2,6 @@ package utils
 
 import org.joda.time.DateTime
 
-object Logger {
-  var log: Logger = ConsoleLogger
-}
-
 trait Logger {
   def inf(msg: String): Unit //Info
   def wrn(msg: String): Unit //Warning

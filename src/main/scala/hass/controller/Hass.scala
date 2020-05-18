@@ -10,7 +10,7 @@ import hass.model.state.EntityState
 import hass.parser.{EventParser, ResultParser, StateParser}
 import org.joda.time.DateTime
 import play.api.libs.json._
-import utils.Logger.log
+import utils.{ConsoleLogger, IdDispatcher, Logger}
 
 import scala.compat.java8.FutureConverters._
 import scala.concurrent.duration._
@@ -18,11 +18,11 @@ import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
 object Hass {
-  def apply(hassUrl: String, token: String, retryOnError: Boolean): Hass =
-    new Hass(hassUrl, token, retryOnError)
+  def apply(hassUrl: String, token: String, retryOnError: Boolean, logger: Logger = ConsoleLogger): Hass =
+    new Hass(hassUrl, token, retryOnError, logger)
 }
 
-class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observable[Event] {
+class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) extends Observable[Event] {
 
   private val receiver: PartialFunction[String, Unit] = {
     case str =>
@@ -41,7 +41,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
         case (Some("auth_ok"), _) => socket match {
           case Some(s) => ping()
             log inf "Auth ok. Subscribing to all events... Fetching all states..."
-            val subscribeEventsId = nextId
+            val subscribeEventsId = ids.next
             s ! "{\"id\":" + subscribeEventsId + ",\"type\":\"subscribe_events\"}"
             val eventsFuture = new CompletableFuture[Result]
             pendingRequest += (subscribeEventsId -> eventsFuture)
@@ -50,7 +50,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
               case _ => log inf "Subscribed to all events failed."
             }
 
-            val fetchStateId = nextId
+            val fetchStateId = ids.next
             s ! "{\"id\":" + fetchStateId + ",\"type\":\"get_states\"}"
             val future = new CompletableFuture[Result]
             pendingRequest += (fetchStateId -> future)
@@ -100,12 +100,13 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
         case _ => log wrn "Unknown json: " + json
       }
   }
-  private val nextIdLock = new Object()
+
   private val pendingRequest = scala.collection.mutable.Map[Long, CompletableFuture[Result]]()
   private val entityStates = scala.collection.mutable.Map[String, EntityState[_]]()
+  private val ids: IdDispatcher = IdDispatcher(1)
   private var client: Option[WebsocketClient[String]] = None
   private var socket: Option[Websocket] = None
-  private var nextIdVar: Long = 0
+
 
   connect()
 
@@ -116,13 +117,16 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
   }
 
   def call(req: Service): scala.concurrent.Future[Result] =
-    send(id => req.materialize(id).toString())
+    send(id => {
+      val res = req.materialize(id).toString()
+      res
+    })
 
   private def send(f: Long => String): scala.concurrent.Future[Result] = {
     socket match {
       case Some(value) =>
         val future = new CompletableFuture[Result]
-        val reqId = nextId
+        val reqId = ids.next
         val str = f(reqId)
         pendingRequest += reqId -> future
         value ! str
@@ -132,11 +136,6 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
         future.complete(Result(success = false, None))
         toScala(future)
     }
-  }
-
-  private def nextId: Long = nextIdLock.synchronized {
-    nextIdVar = nextIdVar + 1
-    nextIdVar
   }
 
   def stateOf[E <: EntityState[_]](entityId: String): Option[E] = entityStates.synchronized {
