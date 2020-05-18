@@ -8,22 +8,22 @@ The purpose is to provide a complete, easy and type safe library for interacting
 [Hass Websocket documentation.](https://developers.home-assistant.io/docs/api/websocket/)
 
 ### Features:
-- [x] Connection via websocket
-- [x] Token authentication
-- [x] Auto-reconnection
+ - [x] Connection via websocket
+ - [x] Token authentication
+ - [x] Auto-reconnection
 ##### Supported entities and relative services
-- [x] Light
-- [x] Switch
-- [x] Sensor
-- [ ] Template
-- [x] BinarySensor
-- [x] InputBoolean
-- [x] InputDateTime
-- [ ] Sun
-- [ ] Weather
-- [ ] Person
-- [ ] Automation
-- [ ] Script
+ - [x] Light
+ - [x] Switch
+ - [x] Sensor
+ - [ ] Template
+ - [x] BinarySensor
+ - [x] InputBoolean
+ - [x] InputDateTime
+ - [ ] Sun
+ - [ ] Weather
+ - [ ] Person
+ - [ ] Automation
+ - [ ] Script
 
 ### Usage
 
@@ -68,28 +68,29 @@ hass call turnOnAllMyLight
 #### Interact with hass by creating entities
 This approach is easier and cleaner:
 ```scala
-  val my_light = Light()            //will bound to light.my_light entity
-  val my_other_light = Light()      //will bound to light.my_other_light entity
-  val my_switch = Switch("sonoff1") //will bound to switch.sonoff1 entity
-  val home_power = Sensor()         //will bound to sensor.home_power entity
-  val light_group = LightGroup(my_light, my_other_light)
-
-  home_power.onState {
-    case (value, time, _) => println(time + ": " + value)
+  val my_light = Light() //will bound to light.my_light entity
+  my_light.onState {
+    case (On, time, state) if state.brightness.exists(_ == 255) => 
+      println(s"my_lamp turn on with maximum brightness at $time (${state.rgb})")
   }
+  my_light.turnOn(_.rgb(255, 0, 255).brightness(255).transition(1))
 
+
+  val my_switch = Switch("sonoff1") //will bound to switch.sonoff1 entity
   my_switch.onState {
     case (Off, _, _) => 
       println("This switch should stay on!")
       my_switch.turn(On)
   }
 
-  my_light.onState {
-    case (On, time, state) if state.brightness.exists(_ == 255) => 
-      println("my_lamp turn on with maximum brightness at " + time)
-      println(state.rgb)
+
+  val home_power = Sensor() //will bound to sensor.home_power entity
+  home_power.onState {
+    case (value, time, _) => println(time + ": " + value)
   }
 
-  my_light.turnOn(_.rgb(255, 0, 255).brightness(255).transition(1))
+
+  val my_other_light = Light() //will bound to light.my_other_light entity
+  val light_group = LightGroup(my_light, my_other_light)
   light_group.toggle()
 ```
