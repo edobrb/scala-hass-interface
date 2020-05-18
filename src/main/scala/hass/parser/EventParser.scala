@@ -7,28 +7,28 @@ import play.api.libs.json._
 
 object EventParser extends JsonParser[Event] {
 
-  override def apply(data: JsValue): Option[Event] = first(parsers)(data)
+  override def apply(data: JsValue): Option[Event] = first(all)(data)
 
-  def parsers: Seq[JsonParser[Event]] = Seq[JsonParser[Event]](
-    stateChangedEventParser,
-    serviceCallEventParser,
-    unknownEventParser)
+  def all: Seq[JsonParser[Event]] = Seq[JsonParser[Event]](
+    stateChanged,
+    serviceCall,
+    unknown)
 
-  def unknownEventParser: JsonParser[UnknownEvent] = data =>
-    for (event <- event(data);
+  def unknown: JsonParser[UnknownEvent] = data =>
+    for (event <- extractEvent(data);
          (origin, timeFired) <- originAndTimeFired(event))
       yield UnknownEvent(data, timeFired, origin)
 
-  def serviceCallEventParser: JsonParser[ServiceCallEvent] = data =>
-    for (event <- event(data);
+  def serviceCall: JsonParser[ServiceCallEvent] = data =>
+    for (event <- extractEvent(data);
          "call_service" <- str("event_type")(event);
          (origin, timeFired) <- originAndTimeFired(event);
          eventData <- json("data")(event);
-         service <- first(ServiceParser.parsers)(eventData))
+         service <- first(ServiceParser.all)(eventData))
       yield ServiceCallEvent(service, timeFired, origin)
 
-  def stateChangedEventParser: JsonParser[StateChangedEvent[_]] = data =>
-    for (event <- event(data);
+  def stateChanged: JsonParser[StateChangedEvent[_]] = data =>
+    for (event <- extractEvent(data);
          "state_changed" <- str("event_type")(event);
          (origin, timeFired) <- originAndTimeFired(event);
          eventData <- json("data")(event);
@@ -39,7 +39,7 @@ object EventParser extends JsonParser[Event] {
          newState <- StateParser(newStateData))
       yield StateChangedEvent(entityId, oldState, newState, timeFired, origin)
 
-  def event: JsonParser[JsValue] = data =>
+  def extractEvent: JsonParser[JsValue] = data =>
     for ("event" <- str("type")(data);
          event <- json("event")(data)) yield event
 

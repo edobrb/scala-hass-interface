@@ -12,7 +12,7 @@ object BinarySensor extends MetaDomain {
   def apply()(implicit name: sourcecode.Name, hass: Hass): BinarySensor = BinarySensor(name.value)(hass)
 }
 
-case class BinarySensor(entity_name: String)(implicit hass: Hass)
+case class BinarySensor(entityName: String)(implicit hass: Hass)
   extends StatefulEntity[TurnState, BinarySensorState]() with BinarySensor.Domain
 
 

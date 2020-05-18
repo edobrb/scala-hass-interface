@@ -7,9 +7,7 @@ import play.api.libs.json.JsValue
 
 object ResultParser extends JsonParser[Result] {
 
-  override def apply(data: JsValue): Option[Result] = parser(data)
-
-  def parser: JsonParser[Result] = data =>
+  override def apply(data: JsValue): Option[Result] =
     for ("result" <- str("type")(data);
          success <- bool("success")(data);
          result = json("result")(data))

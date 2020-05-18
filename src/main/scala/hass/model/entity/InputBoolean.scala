@@ -13,7 +13,7 @@ object InputBoolean extends MetaDomain {
   def apply()(implicit input_boolean_name: sourcecode.Name, hass: Hass): InputBoolean = InputBoolean(input_boolean_name.value)(hass)
 }
 
-case class InputBoolean(entity_name: String)(override implicit val hass: Hass)
+case class InputBoolean(entityName: String)(override implicit val hass: Hass)
   extends StatefulEntity[TurnState, InputBooleanState]() with Turnable[InputBooleanTurnService] with InputBoolean.Domain {
-  override def service(turn: TurnAction): InputBooleanTurnService = InputBooleanTurnService(Seq(entity_name), turn)
+  override def service(turn: TurnAction): InputBooleanTurnService = InputBooleanTurnService(Seq(entityName), turn)
 }

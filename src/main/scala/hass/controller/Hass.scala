@@ -12,6 +12,7 @@ import org.joda.time.DateTime
 import play.api.libs.json._
 import utils.Logger.log
 
+import scala.compat.java8.FutureConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success, Try}
@@ -118,7 +119,6 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
     send(id => req.materialize(id).toString())
 
   private def send(f: Long => String): scala.concurrent.Future[Result] = {
-    import scala.compat.java8.FutureConverters._
     socket match {
       case Some(value) =>
         val future = new CompletableFuture[Result]
@@ -139,9 +139,9 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
     nextIdVar
   }
 
-  def stateOf[E <: EntityState[_]](entity_id: String): Option[E] = entityStates.synchronized {
-    if (entityStates.contains(entity_id)) {
-      Some(entityStates(entity_id).asInstanceOf[E])
+  def stateOf[E <: EntityState[_]](entityId: String): Option[E] = entityStates.synchronized {
+    if (entityStates.contains(entityId)) {
+      Some(entityStates(entityId).asInstanceOf[E])
     } else {
       None
     }

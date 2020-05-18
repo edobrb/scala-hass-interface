@@ -15,23 +15,23 @@ import scala.reflect.ClassTag
 
 
 sealed trait Entity extends MetaDomain {
-  def entity_name: String
+  def entityName: String
 
-  def entity_id: String = s"$domain.$entity_name"
+  def entityId: String = s"$domain.$entityName"
 }
 
-case class UnknownEntity(entity_name: String, override val domain: String) extends Entity
+case class UnknownEntity(entityName: String, override val domain: String) extends Entity
 
 abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass: Hass) extends Entity with Observable[(S, DateTime, E)] {
-  private var _state: Option[E] = hass.stateOf(entity_id)
+  private var internalState: Option[E] = hass.stateOf(entityId)
 
   hass onEvent {
-    case StateChangedEvent(id, _, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entity_id =>
-      _state = Some(newState)
+    case StateChangedEvent(id, _, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entityId =>
+      internalState = Some(newState)
       notifyObservers((newState.state, newState.lastChanged, newState))
   }
 
-  def state: Option[E] = _state
+  def state: Option[E] = internalState
 
   def onState(f: PartialFunction[(S, DateTime, E), Unit]): Unit = addObserver(f)
 }

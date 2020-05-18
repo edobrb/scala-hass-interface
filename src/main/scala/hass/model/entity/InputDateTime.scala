@@ -15,7 +15,7 @@ object InputDateTime extends MetaDomain {
   def apply()(implicit light_name: sourcecode.Name, hass: Hass): InputDateTime = InputDateTime(light_name.value)(hass)
 }
 
-case class InputDateTime(entity_name: String)(implicit hass: Hass)
+case class InputDateTime(entityName: String)(implicit hass: Hass)
   extends StatefulEntity[TimeOrDate, InputDateTimeState]() with InputDateTime.Domain {
-  def set(value: TimeOrDate): Future[Result] = hass call InputDateTimeSetService(Seq(entity_name), value)
+  def set(value: TimeOrDate): Future[Result] = hass call InputDateTimeSetService(Seq(entityName), value)
 }

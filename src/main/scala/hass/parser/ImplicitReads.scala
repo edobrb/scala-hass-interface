@@ -11,7 +11,7 @@ import scala.util.{Failure, Success, Try}
 
 object ImplicitReads {
 
-  implicit val dateTimeReads: Reads[DateTime] = {
+  implicit val dateTime: Reads[DateTime] = {
     case JsString(value) => Try(JsSuccess(DateTime.parse(value).toDateTime(DateTimeZone.getDefault()))) match {
       case Failure(_) => Try(JsSuccess(DateTime.parse(value, DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")).toDateTime(DateTimeZone.getDefault()))).getOrElse(JsError("DateTime parse failure"))
       case Success(value) => value
@@ -19,12 +19,12 @@ object ImplicitReads {
     case _ => JsError("Invalid DateTime format")
   }
 
-  implicit val localTimeReads: Reads[LocalTime] = {
+  implicit val localTime: Reads[LocalTime] = {
     case JsString(value) => Try(JsSuccess(LocalTime.parse(value))).getOrElse(JsError("LocalTime parse failure"))
     case _ => JsError("Invalid LocalTime format")
   }
 
-  implicit val timeOrDateReads: Reads[TimeOrDate] = {
+  implicit val timeOrDate: Reads[TimeOrDate] = {
     case attributes: JsObject =>
       //Reads from attributes of a state
       val timeParser1: JsonParser[Time] = data =>
@@ -69,7 +69,7 @@ object ImplicitReads {
     case _ => JsError("Invalid TimeOrDate format")
   }
 
-  implicit val turnStateReads: Reads[TurnState] = {
+  implicit val turnState: Reads[TurnState] = {
     case JsString("on") => JsSuccess(On)
     case JsString("off") => JsSuccess(Off)
     case JsString("unavailable") => JsSuccess(Unavailable)

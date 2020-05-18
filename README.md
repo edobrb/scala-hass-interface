@@ -2,16 +2,17 @@
 [![](https://jitpack.io/v/edobrb/scala-hass-interface.svg)](https://jitpack.io/#edobrb/scala-hass-interface)
 [![Build Status](https://travis-ci.com/edobrb/scala-hass-interface.svg?branch=master)](https://travis-ci.com/edobrb/scala-hass-interface)
 [![codecov](https://codecov.io/gh/edobrb/scala-hass-interface/branch/master/graph/badge.svg)](https://codecov.io/gh/edobrb/scala-hass-interface)
-### Purpose
+## Purpose
 This artifact aims to create a bridge between Home Assistant web API and any JVM software.
 The purpose is to provide a complete, easy and type safe library for interacting with Hass from the JVM.
 [Hass Websocket documentation.](https://developers.home-assistant.io/docs/api/websocket/)
 
-### Features:
+## Features
  - [x] Connection via websocket
  - [x] Token authentication
  - [x] Auto-reconnection
-##### Supported entities and relative services
+ 
+Supported entities and relative services:
  - [x] Light
  - [x] Switch
  - [x] Sensor
@@ -25,11 +26,11 @@ The purpose is to provide a complete, easy and type safe library for interacting
  - [ ] Automation
  - [ ] Script
 
-### Usage
+## Usage
 
 The usage is unfolded by examples:
 
-#### Creation of Hass interface
+### Creation of Hass interface
 ```scala
 implicit val hass: Hass = Hass(
   "ip:port", 
@@ -38,7 +39,7 @@ implicit val hass: Hass = Hass(
 //this will establish a connection to ws://ip:port/api/websocket
 ```
 
-#### Usage of hass instance
+### Usage of hass instance
 Generics events listening:
 ```scala
 hass.onEvent {
@@ -65,7 +66,7 @@ val turnOnAllMyLight = LightTurnService(Seq("my_lamp", "my_other_lamp"), On).bri
 hass call turnOnAllMyLight
 ```
 
-#### Interact with hass by creating entities
+### Interact with hass by creating entities
 This approach is easier and cleaner:
 ```scala
   val my_light = Light() //will bound to light.my_light entity

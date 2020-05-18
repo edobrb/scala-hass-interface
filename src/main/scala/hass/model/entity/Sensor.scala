@@ -11,5 +11,5 @@ object Sensor extends MetaDomain {
   def apply()(implicit sensor_name: sourcecode.Name, hass: Hass): Sensor = Sensor(sensor_name.value)(hass)
 }
 
-case class Sensor(entity_name: String)(implicit hass: Hass)
+case class Sensor(entityName: String)(implicit hass: Hass)
   extends StatefulEntity[String, SensorState]() with Sensor.Domain

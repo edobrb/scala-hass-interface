@@ -11,35 +11,35 @@ import play.api.libs.json.{JsObject, JsValue}
 
 object ServiceParser extends JsonParser[Service] {
 
-  override def apply(data: JsValue): Option[Service] = first(parsers)(data)
+  override def apply(data: JsValue): Option[Service] = first(all)(data)
 
-  def parsers: Seq[JsonParser[Service]] = Seq[JsonParser[Service]](
-    lightTurnServiceParser,
-    switchTurnServiceParser,
-    inputBooleanTurnServiceParser,
-    inputDatetimeSetServiceParser,
-    unknownServiceParser)
+  def all: Seq[JsonParser[Service]] = Seq[JsonParser[Service]](
+    lightTurn,
+    switchTurn,
+    inputBooleanTurn,
+    inputDatetimeSet,
+    unknown)
 
-  def lightTurnServiceParser: JsonParser[LightTurnService] =
-    turnServiceParser(Light, LightTurnService.apply)
+  def lightTurn: JsonParser[LightTurnService] =
+    turn(Light, LightTurnService.apply)
 
-  def switchTurnServiceParser: JsonParser[SwitchTurnService] =
-    turnServiceParser2(Switch, SwitchTurnService.apply)
+  def switchTurn: JsonParser[SwitchTurnService] =
+    turn2(Switch, SwitchTurnService.apply)
 
-  def inputBooleanTurnServiceParser: JsonParser[InputBooleanTurnService] =
-    turnServiceParser2(InputBoolean, InputBooleanTurnService.apply)
+  def inputBooleanTurn: JsonParser[InputBooleanTurnService] =
+    turn2(InputBoolean, InputBooleanTurnService.apply)
 
-  def inputDatetimeSetServiceParser: JsonParser[InputDateTimeSetService] = data =>
-    for ((InputDateTime.domain, InputDateTimeSetService.service, serviceData) <- defaultInfoParser(data);
+  def inputDatetimeSet: JsonParser[InputDateTimeSetService] = data =>
+    for ((InputDateTime.domain, InputDateTimeSetService.service, serviceData) <- defaultInfo(data);
          entityIds <- strOrStrSeq("entity_id")(serviceData);
          timeOrDate <- extract[TimeOrDate].apply(serviceData))
       yield InputDateTimeSetService(entityIds, timeOrDate)
 
-  def unknownServiceParser: JsonParser[Service] =
-    defaultInfoParser.map { case (domain, service, serviceData) => UnknownService(domain, service, serviceData) }
+  def unknown: JsonParser[Service] =
+    defaultInfo.map { case (domain, service, serviceData) => UnknownService(domain, service, serviceData) }
 
-  def turnServiceParser[T](expectedDomain: MetaDomain, f: (Seq[String], TurnAction, Map[String, JsValue]) => T): JsonParser[T] = data => {
-    for ((expectedDomain.domain, service, serviceData) <- defaultInfoParser(data);
+  def turn[T](expectedDomain: MetaDomain, f: (Seq[String], TurnAction, Map[String, JsValue]) => T): JsonParser[T] = data => {
+    for ((expectedDomain.domain, service, serviceData) <- defaultInfo(data);
          turn <- turnAction(service);
          entityIds <- strOrStrSeq("entity_id")(serviceData);
          entityIdsSplit <- entityIdsSeq(entityIds);
@@ -47,10 +47,10 @@ object ServiceParser extends JsonParser[Service] {
       yield f(entityIdsSplit.map { case (_, name) => name }, turn, attributes)
   }
 
-  def turnServiceParser2[T](expectedDomain: MetaDomain, f: (Seq[String], TurnAction) => T): JsonParser[T] =
-    turnServiceParser(expectedDomain, (e, s, _) => f(e, s))
+  def turn2[T](expectedDomain: MetaDomain, f: (Seq[String], TurnAction) => T): JsonParser[T] =
+    turn(expectedDomain, (e, s, _) => f(e, s))
 
-  def defaultInfoParser: JsonParser[(DomainType, ServiceType, JsObject)] = data =>
+  def defaultInfo: JsonParser[(DomainType, ServiceType, JsObject)] = data =>
     for (domain <- str("domain")(data);
          service <- str("service")(data);
          serviceData <- jsonObj("service_data")(data))

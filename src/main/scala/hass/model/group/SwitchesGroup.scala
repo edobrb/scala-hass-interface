@@ -7,5 +7,5 @@ import hass.model.state.ground.TurnAction
 
 case class SwitchesGroup(switches: Seq[Switch])(override implicit val hass: Hass)
   extends Turnable[SwitchTurnService] {
-  override def service(turn: TurnAction): SwitchTurnService = SwitchTurnService(switches.map(_.entity_name), turn)
+  override def service(turn: TurnAction): SwitchTurnService = SwitchTurnService(switches.map(_.entityName), turn)
 }

@@ -7,5 +7,5 @@ import hass.model.state.ground.TurnAction
 
 case class LightsGroup(lights: Seq[Light])(override implicit val hass: Hass)
   extends Turnable[LightTurnService] {
-  override def service(turn: TurnAction): LightTurnService = LightTurnService(lights.map(_.entity_name), turn)
+  override def service(turn: TurnAction): LightTurnService = LightTurnService(lights.map(_.entityName), turn)
 }

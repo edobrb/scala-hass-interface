@@ -9,61 +9,61 @@ import play.api.libs.json._
 
 object StateParser extends JsonParser[EntityState[_]] {
 
-  override def apply(data: JsValue): Option[EntityState[_]] = first(parsers)(data)
+  override def apply(data: JsValue): Option[EntityState[_]] = first(all)(data)
 
-  def parsers: Seq[JsonParser[EntityState[_]]] = Seq[JsonParser[EntityState[_]]](
-    sensorStateParser,
-    switchStateParser,
-    lightStateParser,
-    binarySensorStateParser,
-    inputBooleanStateParser,
-    inputDateTimeStateParser,
-    unknownEntityParser)
+  def all: Seq[JsonParser[EntityState[_]]] = Seq[JsonParser[EntityState[_]]](
+    sensor,
+    switch,
+    light,
+    binarySensor,
+    inputBoolean,
+    inputDateTime,
+    unknown)
 
-  def switchStateParser: JsonParser[SwitchState] =
-    expectedStateParser(Switch.domain, SwitchState.apply)
+  def switch: JsonParser[SwitchState] =
+    expected(Switch.domain, SwitchState.apply)
 
-  def binarySensorStateParser: JsonParser[BinarySensorState] =
-    expectedStateParser(BinarySensor.domain, BinarySensorState.apply)
+  def binarySensor: JsonParser[BinarySensorState] =
+    expected(BinarySensor.domain, BinarySensorState.apply)
 
-  def lightStateParser: JsonParser[LightState] =
-    expectedStateParser(Light.domain, LightState.apply)
+  def light: JsonParser[LightState] =
+    expected(Light.domain, LightState.apply)
 
-  def sensorStateParser: JsonParser[SensorState] =
-    expectedStateParser(Sensor.domain, SensorState.apply)
+  def sensor: JsonParser[SensorState] =
+    expected(Sensor.domain, SensorState.apply)
 
-  def inputBooleanStateParser: JsonParser[InputBooleanState] =
-    expectedStateParser(InputBoolean.domain, InputBooleanState.apply)
+  def inputBoolean: JsonParser[InputBooleanState] =
+    expected(InputBoolean.domain, InputBooleanState.apply)
 
-  def inputDateTimeStateParser: JsonParser[InputDateTimeState] =
-    expectedStateParserFromAttributes(InputDateTime.domain, InputDateTimeState.apply)
+  def inputDateTime: JsonParser[InputDateTimeState] =
+    expectedFromAttributes(InputDateTime.domain, InputDateTimeState.apply)
 
-  def unknownEntityParser: JsonParser[UnknownEntityState] = data =>
-    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[String](implicitly[Reads[String]])(data))
+  def unknown: JsonParser[UnknownEntityState] = data =>
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- generic[String](implicitly[Reads[String]])(data))
       yield UnknownEntityState(domain + "." + entityName, state, lastChanged, lastUpdated, attributes)
 
-  def expectedStateParser[T: Reads, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K): JsonParser[K] = data =>
-    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParser[T](implicitly[Reads[T]])(data)
+  def expected[T: Reads, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K): JsonParser[K] = data =>
+    for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- generic[T](implicitly[Reads[T]])(data)
          if domain == expectedDomain)
       yield f(entityName, state, lastChanged, lastUpdated, attributes)
 
-  def expectedStateParserFromAttributes[T: Reads, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K): JsonParser[K] = data =>
+  def expectedFromAttributes[T: Reads, K](expectedDomain: String, f: (String, T, DateTime, DateTime, Option[JsObject]) => K): JsonParser[K] = data =>
     for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- stateParserFromAttributes[T](implicitly[Reads[T]])(data)
          if domain == expectedDomain)
       yield f(entityName, state, lastChanged, lastUpdated, attributes)
 
-  def stateParser[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
-    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfoParser(data);
+  def generic[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
+    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfo(data);
          state <- value[T]("state").apply(data))
       yield (domain, name, state, lastChanged, lastUpdated, attributes)
 
   def stateParserFromAttributes[T: Reads]: JsonParser[(String, String, T, DateTime, DateTime, Option[JsObject])] = data =>
-    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfoParser(data);
+    for ((domain, name, lastChanged, lastUpdated, attributes) <- defaultInfo(data);
          attrs <- attributes;
          state <- extract[T].apply(attrs))
       yield (domain, name, state, lastChanged, lastUpdated, attributes)
 
-  def defaultInfoParser: JsonParser[(String, String, DateTime, DateTime, Option[JsObject])] = data =>
+  def defaultInfo: JsonParser[(String, String, DateTime, DateTime, Option[JsObject])] = data =>
     for (entityId <- str("entity_id")(data);
          (domain, name) <- entityIds(entityId);
          lastChanged <- datetime("last_changed")(data);
