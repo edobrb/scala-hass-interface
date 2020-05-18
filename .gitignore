@@ -5,6 +5,7 @@ project/
 target/
 build/
 
+src/test/scala/Test.scala
 !project/plugins.sbt
 
 # eclipse
