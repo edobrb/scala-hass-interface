@@ -6,7 +6,7 @@ import hass.model.state.ground.{Off, On, TurnState, Unavailable}
 import play.api.libs.json.JsObject
 
 
-case class InputBooleanState(override val entity_name: String,
+case class InputBooleanState(override val entityName: String,
                              override val state: TurnState,
                              override val lastChanged: DateTime,
                              override val lastUpdated: DateTime,

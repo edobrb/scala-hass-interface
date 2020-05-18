@@ -11,7 +11,7 @@ import hass.model.state.ground.{TurnAction, TurnState}
 object Switch extends MetaDomain {
   val domain: DomainType = "switch"
 
-  def apply()(implicit switch_name: sourcecode.Name, hass: Hass): Switch = Switch(switch_name.value)(hass)
+  def apply()(implicit name: sourcecode.Name, hass: Hass): Switch = Switch(name.value)(hass)
 }
 
 case class Switch(entityName: String)(override implicit val hass: Hass)

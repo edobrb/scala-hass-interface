@@ -8,7 +8,7 @@ import hass.model.state.SensorState
 object Sensor extends MetaDomain {
   val domain: DomainType = "sensor"
 
-  def apply()(implicit sensor_name: sourcecode.Name, hass: Hass): Sensor = Sensor(sensor_name.value)(hass)
+  def apply()(implicit name: sourcecode.Name, hass: Hass): Sensor = Sensor(name.value)(hass)
 }
 
 case class Sensor(entityName: String)(implicit hass: Hass)

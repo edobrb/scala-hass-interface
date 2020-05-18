@@ -14,7 +14,7 @@ class EventParserTest extends FunSuite {
       case Some(res:StateChangedEvent[_]) =>
         assert(res.origin == "LOCAL")
         assert(res.timeFired.getMillis - new DateTime(2016, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
-        assert(res.entity_id == "light.bed_light")
+        assert(res.entityId == "light.bed_light")
       case _ => fail()
     }
   }

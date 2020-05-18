@@ -5,7 +5,7 @@ import hass.model.entity.InputDateTime
 import hass.model.state.ground.TimeOrDate
 import play.api.libs.json.JsObject
 
-case class InputDateTimeState(override val entity_name: String,
+case class InputDateTimeState(override val entityName: String,
                               override val state: TimeOrDate,
                               override val lastChanged: DateTime,
                               override val lastUpdated: DateTime,

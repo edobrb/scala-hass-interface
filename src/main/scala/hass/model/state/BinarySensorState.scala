@@ -6,7 +6,7 @@ import hass.model.state.ground.TurnState
 import play.api.libs.json.JsObject
 
 
-case class BinarySensorState(override val entity_name: String,
+case class BinarySensorState(override val entityName: String,
                              override val state: TurnState,
                              override val lastChanged: DateTime,
                              override val lastUpdated: DateTime,

@@ -4,11 +4,11 @@ import com.github.nscala_time.time.Imports.DateTime
 import play.api.libs.json.{JsObject, Reads}
 
 trait EntityState[T] {
-  def entity_name: String
+  def entityName: String
 
   def domain: String
 
-  def entity_id: String = s"$domain.$entity_name"
+  def entityId: String = s"$domain.$entityName"
 
   def lastChanged: DateTime
 
@@ -26,7 +26,7 @@ trait EntityState[T] {
 
 object EntityState {
   def unapply(arg: EntityState[_]): Option[(String, Any, DateTime, DateTime, Option[JsObject])] =
-    Some(arg.entity_id, arg.state, arg.lastChanged, arg.lastUpdated, arg.attributes)
+    Some(arg.entityId, arg.state, arg.lastChanged, arg.lastUpdated, arg.attributes)
 }
 
 

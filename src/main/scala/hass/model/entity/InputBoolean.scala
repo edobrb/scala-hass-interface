@@ -10,7 +10,7 @@ import hass.model.state.ground.{TurnAction, TurnState}
 object InputBoolean extends MetaDomain {
   val domain: DomainType = "input_boolean"
 
-  def apply()(implicit input_boolean_name: sourcecode.Name, hass: Hass): InputBoolean = InputBoolean(input_boolean_name.value)(hass)
+  def apply()(implicit name: sourcecode.Name, hass: Hass): InputBoolean = InputBoolean(name.value)(hass)
 }
 
 case class InputBoolean(entityName: String)(override implicit val hass: Hass)

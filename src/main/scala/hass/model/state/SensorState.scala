@@ -7,7 +7,7 @@ import play.api.libs.json.JsObject
 import scala.util.Try
 
 
-case class SensorState(override val entity_name: String,
+case class SensorState(override val entityName: String,
                        override val state: String,
                        override val lastChanged: DateTime,
                        override val lastUpdated: DateTime,

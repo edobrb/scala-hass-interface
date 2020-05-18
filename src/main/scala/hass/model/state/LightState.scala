@@ -5,7 +5,7 @@ import hass.model.entity.Light
 import hass.model.state.ground.TurnState
 import play.api.libs.json.JsObject
 
-case class LightState(override val entity_name: String,
+case class LightState(override val entityName: String,
                       override val state: TurnState,
                       override val lastChanged: DateTime,
                       override val lastUpdated: DateTime,

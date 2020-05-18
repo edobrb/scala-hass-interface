@@ -59,9 +59,9 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
                 case Some(JsArray(v)) => v.foreach(s => {
                   StateParser(s) match {
                     case Some(state) =>
-                      entityStates += (state.entity_id -> state)
+                      entityStates += (state.entityId -> state)
                       //TODO: not very correct
-                      notifyObservers(StateChangedEvent(state.entity_id, state, state, DateTime.now(), "INTERNAL"))
+                      notifyObservers(StateChangedEvent(state.entityId, state, state, DateTime.now(), "INTERNAL"))
                     case None => log err ("parsing error: " + s)
                   }
                 })
@@ -194,8 +194,9 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean) extends Observ
             this.close()
           }
       })
-      client = Some(clientBuilder.build())
-      Try(client.get.open()) match {
+      val newClient = clientBuilder.build()
+      client = Some(newClient)
+      Try(newClient.open()) match {
         case Failure(exception) =>
           log err "While opening connection: " + exception.getMessage
           notifyObservers(ConnectionClosedEvent)

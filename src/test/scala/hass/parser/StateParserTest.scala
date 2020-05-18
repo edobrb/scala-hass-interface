@@ -24,7 +24,7 @@ class StateParserTest extends FunSuite {
   test("Parse light state 1") {
     StateParser(lightState1) match {
       case Some(s: LightState) =>
-        assert(s.entity_name == "bed_light")
+        assert(s.entityName == "bed_light")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
         assert(s.state == On)
         assert(s.rgb.exists { case (254, 208, 0) => true; case _ => false })
@@ -60,7 +60,7 @@ class StateParserTest extends FunSuite {
   test("Parse switch state 1") {
     StateParser(switchState1) match {
       case Some(s: SwitchState) =>
-        assert(s.entity_name == "garage_switch")
+        assert(s.entityName == "garage_switch")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
         assert(s.state == Off)
         assert(s.attribute[Int]("some_random_attribute").isEmpty)
@@ -78,8 +78,8 @@ class StateParserTest extends FunSuite {
   test("Parse unknown state 1") {
     StateParser(unknownState1) match {
       case Some(s: UnknownEntityState) =>
-        assert(s.entity_name == "some_name")
-        assert(s.entity_id == "some_domain.some_name")
+        assert(s.entityName == "some_name")
+        assert(s.entityId == "some_domain.some_name")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
         assert(s.state == "unavailable")
         assert(s.attribute[Int]("some_random_attribute").isEmpty)
@@ -96,8 +96,8 @@ class StateParserTest extends FunSuite {
   test("Input datetime states") {
     Seq(inputDatetimeState1, inputDatetimeState2).map(StateParser.apply).foreach {
       case Some(s: InputDateTimeState) =>
-        assert(s.entity_name == "date_and_time")
-        assert(s.entity_id == "input_datetime.date_and_time")
+        assert(s.entityName == "date_and_time")
+        assert(s.entityId == "input_datetime.date_and_time")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
         assert(s.state == DateAndTime(Date(2020, 12, 25), Time(13, 56, 13)))
         assert(s.lastUpdated.getMillis - new DateTime(2016, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)

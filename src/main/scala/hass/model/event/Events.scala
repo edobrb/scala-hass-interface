@@ -14,14 +14,14 @@ sealed trait Event {
 
 case class UnknownEvent(jsValue: JsValue, timeFired: DateTime, origin: String) extends Event
 
-case class StateChangedEvent[S <: EntityState[_]](entity_id: String, oldState: S, newState: S, timeFired: DateTime, origin: String) extends Event
+case class StateChangedEvent[S <: EntityState[_]](entityId: String, oldState: S, newState: S, timeFired: DateTime, origin: String) extends Event
 
 case class ServiceCallEvent(service: Service, timeFired: DateTime, origin: String) extends Event
 
 trait ConnectionEvent extends Event {
-  private val _timeFired = Imports.DateTime.now()
+  private val time = Imports.DateTime.now()
 
-  override def timeFired: Imports.DateTime = _timeFired
+  override def timeFired: Imports.DateTime = time
 
   override def origin: String = "INTERNAL"
 }
