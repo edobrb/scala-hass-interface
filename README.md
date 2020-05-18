@@ -1,4 +1,5 @@
 # scala-hass-interface
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/970cd0da136b45b3b221c92c925635c1)](https://app.codacy.com/manual/edobrb/scala-hass-interface?utm_source=github.com&utm_medium=referral&utm_content=edobrb/scala-hass-interface&utm_campaign=Badge_Grade_Dashboard)
 [![](https://jitpack.io/v/edobrb/scala-hass-interface.svg)](https://jitpack.io/#edobrb/scala-hass-interface)
 [![Build Status](https://travis-ci.com/edobrb/scala-hass-interface.svg?branch=master)](https://travis-ci.com/edobrb/scala-hass-interface)
 [![codecov](https://codecov.io/gh/edobrb/scala-hass-interface/branch/master/graph/badge.svg)](https://codecov.io/gh/edobrb/scala-hass-interface)
