@@ -122,22 +122,6 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
       res
     })
 
-  private def send(f: Long => String): scala.concurrent.Future[Result] = {
-    socket match {
-      case Some(value) =>
-        val future = new CompletableFuture[Result]
-        val reqId = ids.next
-        val str = f(reqId)
-        pendingRequest += reqId -> future
-        value ! str
-        toScala(future)
-      case None =>
-        val future = new CompletableFuture[Result]
-        future.complete(Result(success = false, None))
-        toScala(future)
-    }
-  }
-
   def stateOf[E <: EntityState[_]](entityId: String): Option[E] = entityStates.synchronized {
     if (entityStates.contains(entityId)) {
       Some(entityStates(entityId).asInstanceOf[E])
@@ -148,15 +132,15 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
 
   def onEvent(f: PartialFunction[Event, Unit]): Unit = addObserver(f)
 
-  def onStateChange(f: PartialFunction[EntityState[_], Unit]): Unit = addObserver({
+  def onStateChange(f: PartialFunction[EntityState[_], Unit]): Unit = onEvent({
     case StateChangedEvent(_, _, newState, _, _) if f.isDefinedAt(newState) => f(newState)
   })
 
-  def onConnection(f: () => Unit): Unit = addObserver({
+  def onConnection(f: () => Unit): Unit = onEvent({
     case ConnectionOpenEvent => f()
   })
 
-  def onClose(f: () => Unit): Unit = addObserver({
+  def onClose(f: () => Unit): Unit = onEvent({
     case ConnectionClosedEvent => f()
   })
 
@@ -183,7 +167,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
         case None =>
       }
       log inf "Connecting..."
-      val clientBuilder = WebsocketClient.Builder.apply[String](s"ws://$hassUrl/api/websocket")(receiver).onFailure({
+      val clientBuilder = WebsocketClient.Builder[String](s"ws://$hassUrl/api/websocket")(receiver).onFailure({
         case exception =>
           log err exception.getMessage
           notifyObservers(ConnectionClosedEvent)
@@ -213,9 +197,25 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
     })
   }
 
+  private def send(f: Long => String): scala.concurrent.Future[Result] = {
+    socket match {
+      case Some(value) =>
+        val future = new CompletableFuture[Result]
+        val reqId = ids.next
+        val str = f(reqId)
+        pendingRequest += reqId -> future
+        value ! str
+        toScala(future)
+      case None =>
+        val future = new CompletableFuture[Result]
+        future.complete(Result(success = false, None))
+        toScala(future)
+    }
+  }
+
   private def ping(): Unit = {
     ExecutionContext.global.execute(() => {
-      Thread.sleep(1000)
+      Thread.sleep(100)
       val pingFuture = send(id => "{\"id\":" + id + ",\"type\":\"ping\"}")
       Try(Await.result(pingFuture, 2.seconds)) match {
         case Failure(_) => log err "Not received pong response in 2 seconds!"
