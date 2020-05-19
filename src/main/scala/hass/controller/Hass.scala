@@ -7,7 +7,7 @@ import hass.model.common.Observable
 import hass.model.event.{ConnectionClosedEvent, ConnectionOpenEvent, Event, StateChangedEvent}
 import hass.model.service.{Result, Service}
 import hass.model.state.EntityState
-import hass.parser.{EventParser, ResultParser, StateParser}
+import hass.unmarshaller.{EventUnmarshaller, ResultUnmarshaller, StateUnmarshaller}
 import org.joda.time.DateTime
 import play.api.libs.json._
 import utils.{ConsoleLogger, IdDispatcher, Logger}
@@ -57,7 +57,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
             future.thenAccept(result => entityStates.synchronized {
               result.result match {
                 case Some(JsArray(v)) => v.foreach(s => {
-                  StateParser(s) match {
+                  StateUnmarshaller(s) match {
                     case Some(state) =>
                       entityStates += (state.entityId -> state)
                       //TODO: not very correct
@@ -76,7 +76,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
 
         case (Some("result"), Some(id)) =>
           if (pendingRequest.isDefinedAt(id)) {
-            pendingRequest(id).complete(ResultParser(json).getOrElse(Result.parsingError))
+            pendingRequest(id).complete(ResultUnmarshaller(json).getOrElse(Result.parsingError))
             pendingRequest -= id
           } else {
             log err "Malformed result: " + json
@@ -84,7 +84,7 @@ class Hass(hassUrl: String, token: String, retryOnError: Boolean, log: Logger) e
 
 
         case (Some("event"), _) =>
-          EventParser(json) match {
+          EventUnmarshaller(json) match {
             case Some(event) => notifyObservers(event)
             case None => log err "Malformed event: " + json
           }

@@ -1,4 +1,4 @@
-package hass.parser
+package hass.unmarshaller
 
 import hass.model.state.ground._
 import hass.model.state.{InputDateTimeState, LightState, SwitchState, UnknownEntityState}
@@ -22,7 +22,7 @@ class StateParserTest extends FunSuite {
   val inputDatetimeState2: JsValue = Json.parse("{\"entity_id\":\"input_datetime.date_and_time\",\"last_changed\":\"2015-11-26T01:37:24.265390+00:00\",\"state\":\"2020-12-25 13:56:13\",\"attributes\":{\"has_date\":true,\"has_time\":true,\"hour\":13,\"minute\":56,\"second\":13,\"year\":2020,\"month\":12,\"day\":25},\"last_updated\":\"2016-11-26T01:37:24.265390+00:00\"}")
 
   test("Parse light state 1") {
-    StateParser(lightState1) match {
+    StateUnmarshaller(lightState1) match {
       case Some(s: LightState) =>
         assert(s.entityName == "bed_light")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
@@ -49,7 +49,7 @@ class StateParserTest extends FunSuite {
     }
   }
   test("Parse light state 2") {
-    StateParser(lightState2) match {
+    StateUnmarshaller(lightState2) match {
       case Some(s: LightState) =>
         assert(s.rgb.isEmpty)
         assert(s.xy.isEmpty)
@@ -58,7 +58,7 @@ class StateParserTest extends FunSuite {
     }
   }
   test("Parse switch state 1") {
-    StateParser(switchState1) match {
+    StateUnmarshaller(switchState1) match {
       case Some(s: SwitchState) =>
         assert(s.entityName == "garage_switch")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
@@ -70,13 +70,13 @@ class StateParserTest extends FunSuite {
     }
   }
   test("Parse switch state 2") {
-    StateParser(switchState2) match {
+    StateUnmarshaller(switchState2) match {
       case Some(s: SwitchState) => assert(s.state == Unavailable)
       case _ => fail()
     }
   }
   test("Parse unknown state 1") {
-    StateParser(unknownState1) match {
+    StateUnmarshaller(unknownState1) match {
       case Some(s: UnknownEntityState) =>
         assert(s.entityName == "some_name")
         assert(s.entityId == "some_domain.some_name")
@@ -88,13 +88,13 @@ class StateParserTest extends FunSuite {
     }
   }
   test("Parse wrong states") {
-    assert(StateParser(wrongState1).isEmpty)
-    assert(StateParser(wrongState2).isEmpty)
-    assert(StateParser(wrongState3).isEmpty)
-    assert(StateParser(wrongState4).isEmpty)
+    assert(StateUnmarshaller(wrongState1).isEmpty)
+    assert(StateUnmarshaller(wrongState2).isEmpty)
+    assert(StateUnmarshaller(wrongState3).isEmpty)
+    assert(StateUnmarshaller(wrongState4).isEmpty)
   }
   test("Input datetime states") {
-    Seq(inputDatetimeState1, inputDatetimeState2).map(StateParser.apply).foreach {
+    Seq(inputDatetimeState1, inputDatetimeState2).map(StateUnmarshaller.apply).foreach {
       case Some(s: InputDateTimeState) =>
         assert(s.entityName == "date_and_time")
         assert(s.entityId == "input_datetime.date_and_time")

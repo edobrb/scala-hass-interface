@@ -1,8 +1,8 @@
-package hass.parser
+package hass.unmarshaller
 
 import com.github.nscala_time.time.Imports.{DateTime, DateTimeZone}
 import hass.model.state.ground._
-import hass.parser.CommonParser._
+import hass.unmarshaller.CommonUnmarshaller._
 import org.joda.time.LocalTime
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.json._
@@ -27,42 +27,42 @@ object ImplicitReads {
   implicit val timeOrDate: Reads[TimeOrDate] = {
     case attributes: JsObject =>
       //Reads from attributes of a state
-      val timeParser1: JsonParser[Time] = data =>
+      val timeUnmarshaller1: JsonUnmarshaller[Time] = data =>
         for (true <- bool("has_time")(data);
              hour <- int("hour")(data);
              minute <- int("minute")(data);
              second <- int("second")(data))
           yield Time(hour, minute, second)
 
-      val timeParser2: JsonParser[Time] = data =>
+      val timeUnmarshaller2: JsonUnmarshaller[Time] = data =>
         for (true <- bool("has_time")(data);
              timestamp <- int("timestamp")(data))
           yield Time(timestamp / 3600, (timestamp % 3600) / 60, (timestamp % 3600) % 60)
 
-      val dateParser1: JsonParser[Date] = data =>
+      val dateUnmarshaller1: JsonUnmarshaller[Date] = data =>
         for (true <- bool("has_date")(data);
              year <- int("year")(data);
              month <- int("month")(data);
              day <- int("day")(data))
           yield Date(year, month, day)
 
-      val datetimeParser1: JsonParser[DateAndTime] = data =>
-        for (time <- first(Seq(timeParser1, timeParser2))(data);
-             date <- dateParser1(data))
+      val datetimeUnmarshaller1: JsonUnmarshaller[DateAndTime] = data =>
+        for (time <- first(Seq(timeUnmarshaller1, timeUnmarshaller2))(data);
+             date <- dateUnmarshaller1(data))
           yield DateAndTime(date, time)
 
       //Reads from serviceData of a service
-      val timeParser3: JsonParser[Time] = data => for (time <- value[LocalTime]("time").apply(data)) yield Time(time)
-      val dateParser2: JsonParser[Date] = data => for (date <- value[DateTime]("date").apply(data)) yield Date(date)
-      val datetimeParser2: JsonParser[DateAndTime] = data =>
-        for (time <- timeParser2(data);
-             date <- dateParser2(data))
+      val timeUnmarshaller3: JsonUnmarshaller[Time] = data => for (time <- value[LocalTime]("time").apply(data)) yield Time(time)
+      val dateUnmarshaller2: JsonUnmarshaller[Date] = data => for (date <- value[DateTime]("date").apply(data)) yield Date(date)
+      val datetimeUnmarshaller2: JsonUnmarshaller[DateAndTime] = data =>
+        for (time <- timeUnmarshaller2(data);
+             date <- dateUnmarshaller2(data))
           yield DateAndTime(date, time)
-      val datetimeParser3: JsonParser[DateAndTime] = data => for (datetime <- value[DateTime]("datetime").apply(data))
+      val datetimeUnmarshaller3: JsonUnmarshaller[DateAndTime] = data => for (datetime <- value[DateTime]("datetime").apply(data))
         yield DateAndTime(datetime)
 
-      first(Seq(datetimeParser1, dateParser1, timeParser1, timeParser3,
-        datetimeParser2, dateParser2, timeParser2, datetimeParser3))(attributes)
+      first(Seq(datetimeUnmarshaller1, dateUnmarshaller1, timeUnmarshaller1, timeUnmarshaller3,
+        datetimeUnmarshaller2, dateUnmarshaller2, timeUnmarshaller2, datetimeUnmarshaller3))(attributes)
         .map(t => JsSuccess(t))
         .getOrElse(JsError("Invalid TimeOrDate format"))
 

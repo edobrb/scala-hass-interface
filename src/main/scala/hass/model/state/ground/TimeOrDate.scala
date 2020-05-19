@@ -18,7 +18,7 @@ case class Time(h: Int, m: Int, s: Int) extends TimeOrDate {
 
   override def kind: String = "time"
 
-  def toLocalTime: org.joda.time.LocalTime = new org.joda.time.LocalTime(h, m, s)
+  def toJoda: org.joda.time.LocalTime = new org.joda.time.LocalTime(h, m, s)
 }
 
 object Date {
@@ -30,7 +30,7 @@ case class Date(y: Int, m: Int, d: Int) extends TimeOrDate {
 
   override def kind: String = "date"
 
-  def toDateTime: DateTime = new DateTime(y, m, d, 0, 0, 0)
+  def toJoda: DateTime = new DateTime(y, m, d, 0, 0, 0)
 }
 
 object DateAndTime {
@@ -42,5 +42,5 @@ case class DateAndTime(date: Date, time: Time) extends TimeOrDate {
 
   override def kind: String = "datetime"
 
-  def toDateTime: DateTime = new DateTime(date.y, date.m, date.d, time.h, time.m, time.s)
+  def toJoda: DateTime = new DateTime(date.y, date.m, date.d, time.h, time.m, time.s)
 }
