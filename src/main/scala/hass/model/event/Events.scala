@@ -26,7 +26,7 @@ trait ConnectionEvent extends Event {
   override def origin: String = "INTERNAL"
 }
 
-case object ConnectionOpenEvent extends ConnectionEvent
+case object ConnectionReadyEvent extends ConnectionEvent
 
 case object ConnectionClosedEvent extends ConnectionEvent
 

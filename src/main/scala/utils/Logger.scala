@@ -18,15 +18,15 @@ object VoidLogger extends Logger {
 
 object ConsoleLogger extends Logger {
   def inf(msg: String): Unit = {
-    println(s"I[${DateTime.now}] $msg")
+    println(s"{${Thread.currentThread.getName}} I[${DateTime.now}] $msg")
   }
 
   def wrn(msg: String): Unit = {
-    println(s"W[${DateTime.now}] $msg")
+    println(s"{${Thread.currentThread.getName}} W[${DateTime.now}] $msg")
   }
 
   def err(msg: String): Unit = {
-    println(s"E[${DateTime.now}] $msg")
+    println(s"{${Thread.currentThread.getName}} E[${DateTime.now}] $msg")
   }
 }
 
