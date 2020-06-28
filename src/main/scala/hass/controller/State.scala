@@ -9,31 +9,32 @@ import org.joda.time.DateTime
 import play.api.libs.json.{JsArray, JsValue, Json}
 import utils.Logger
 
+import scala.util.{Failure, Success, Try}
+
 object State {
   type ID = Long
   type EntityId = String
   type Request = String
   type Message = String
 
-  def empty(log: Logger): State = State(Map(), 1, Seq(), Seq(), Map(), log)
+  def empty(authToken: String, log: Logger): State = State(Map(), 1, Seq(), Seq(), Map(), authToken, log)
 }
 
 case class State(entitiesStates: Map[EntityId, EntityState[_]],
                  nextId: ID,
                  pendingOutputs: Seq[Message],
-                 pendingEventNotifications: Seq[Event],
+                 pendingEvents: Seq[Event],
                  pendingRequest: Map[ID, (State, Result) => State],
+                 authToken: String,
                  log: Logger) {
 
-  def addPendingEventNotification(event: Event): State = copy(pendingEventNotifications = pendingEventNotifications :+ event)
+  def addPendingEventNotification(event: Event): State = copy(pendingEvents = pendingEvents :+ event)
 
-  def extractPendingEventNotifications(): (Seq[Event], State) = (pendingEventNotifications, copy(pendingEventNotifications = Seq()))
+  def extractPendingEvents(): (Seq[Event], State) = (pendingEvents, copy(pendingEvents = Seq()))
 
   def addPendingOutput(message: Message): State = copy(pendingOutputs = pendingOutputs :+ message)
 
   def extractPendingOutputs(): (Seq[Message], State) = (pendingOutputs, copy(pendingOutputs = Seq()))
-
-  def clearPendingRequest(): State = copy(pendingRequest = Map())
 
   def addPendingRequest(id: ID, t: (State, Result) => State): State =
     copy(pendingRequest = pendingRequest + (id -> t))
@@ -47,9 +48,15 @@ case class State(entitiesStates: Map[EntityId, EntityState[_]],
   def generateRequest(r: ID => Message, t: (State, Result) => State): State =
     copy(nextId = nextId + 1).addPendingOutput(r(nextId)).addPendingRequest(nextId, t)
 
-  private def digestAuthRequired(): State = this
+  private def digestAuthRequired(): State = {
+    log inf "Authentication required, providing jwt..."
+    addPendingOutput("{\"type\":\"auth\",\"access_token\":\"" + authToken + "\"}")
+  }
 
-  private def digestAuthInvalid(): State = this
+  private def digestAuthInvalid(): State = {
+    log wrn "Authentication invalid."
+    this
+  }
 
   private def digestAuthOk(): State = {
     log inf "Auth ok. Subscribing to all events... Fetching all states..."
@@ -96,18 +103,23 @@ case class State(entitiesStates: Map[EntityId, EntityState[_]],
   }
 
   def digest(msg: Message): State = {
-    val json = Json.parse(msg)
-    ((json \ "type").asOpt[String], (json \ "id").asOpt[Long]) match {
-      case (Some("auth_required"), _) => digestAuthRequired()
-      case (Some("auth_invalid"), _) => digestAuthInvalid()
-      case (Some("auth_ok"), _) => digestAuthOk()
-      case (Some("result"), Some(id)) => digestResult(id, json)
-      case (Some("event"), _) => digestEvent(json)
-      case (Some("pong"), Some(id)) => digestPong(id)
-      case _ => defaultDigest(json)
+    val maybeJson = Try(Json.parse(msg))
+    maybeJson match {
+      case Failure(_) =>
+        log err "Received invalid message: " + msg
+        this
+      case Success(json) => ((json \ "type").asOpt[String], (json \ "id").asOpt[Long]) match {
+        case (Some("auth_required"), _) => digestAuthRequired()
+        case (Some("auth_invalid"), _) => digestAuthInvalid()
+        case (Some("auth_ok"), _) => digestAuthOk()
+        case (Some("result"), Some(id)) => digestResult(id, json)
+        case (Some("event"), _) => digestEvent(json)
+        case (Some("pong"), Some(id)) => digestPong(id)
+        case _ => defaultDigest(json)
+      }
     }
   }
 
-  def clear: State = State.empty(log)
+  def clear: State = State.empty(authToken, log)
 }
 

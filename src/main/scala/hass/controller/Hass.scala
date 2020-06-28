@@ -7,8 +7,8 @@ import hass.model.common.Observable
 import hass.model.event.{ConnectionClosedEvent, ConnectionReadyEvent, Event, StateChangedEvent}
 import hass.model.service.{Result, Service}
 import hass.model.state.EntityState
+import scalaz.-\/
 import scalaz.concurrent.Task
-import scalaz.{-\/, \/-}
 import utils.{ConsoleLogger, IdDispatcher, Logger}
 
 import scala.compat.java8.FutureConverters.toScala
@@ -23,7 +23,7 @@ object Hass {
 
 class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
 
-  private var state: State = State.empty(log)
+  private var state: State = State.empty(token, log)
   private var outputPipe: Option[OutputPipe] = None
   private val transformExecutor: ExecutorService = Executors.newSingleThreadExecutor()
   private val pingExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -35,7 +35,7 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
       log err "Connection error: " + exception.getMessage
   }
   private val ventState: State => State = state => {
-    val (notifications, state1) = state.extractPendingEventNotifications()
+    val (notifications, state1) = state.extractPendingEvents()
     val (outputs, state2) = state1.extractPendingOutputs()
     notifications.foreach(notifyObservers)
     outputs.foreach(sendMessage)
@@ -48,6 +48,8 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
 
   connect()
 
+  onConnection(ping)
+
   private def connect(): Unit =
     connectionExecutor.execute(() => {
       close()
@@ -57,17 +59,12 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
           transform(_.clear)
           log inf "Connected."
           outputPipe = Some(value)
-          auth()
-          ping()
         case None =>
           log err "Error while opening connecting. Will retry..."
           notifyObservers(ConnectionClosedEvent)
           connect()
       }
     })
-
-  private def auth(): Unit =
-    sendMessage("{\"type\":\"auth\",\"access_token\":\"" + token + "\"}")
 
   private def ping(): Unit =
     pingExecutor.execute(() => {
