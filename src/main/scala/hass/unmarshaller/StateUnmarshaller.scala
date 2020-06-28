@@ -18,6 +18,7 @@ object StateUnmarshaller extends JsonUnmarshaller[EntityState[_]] {
     binarySensor,
     inputBoolean,
     inputDateTime,
+    inputText,
     unknown)
 
   def switch: JsonUnmarshaller[SwitchState] =
@@ -37,6 +38,9 @@ object StateUnmarshaller extends JsonUnmarshaller[EntityState[_]] {
 
   def inputDateTime: JsonUnmarshaller[InputDateTimeState] =
     expectedFromAttributes(InputDateTime.domain, InputDateTimeState.apply)
+
+  def inputText:JsonUnmarshaller[InputTextState] =
+    expected(InputText.domain, InputTextState.apply)
 
   def unknown: JsonUnmarshaller[UnknownEntityState] = data =>
     for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- genericFromState[String](implicitly[Reads[String]])(data))

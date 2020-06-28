@@ -5,7 +5,7 @@ import utils.IdDispatcher
 
 import scala.concurrent.duration.{FiniteDuration, _}
 
-class WebsocketIOTest extends FunSuite {
+class WebsocketIOTest extends FunSuite
  /* test("WebsocketIO virtual test") {
     val messages = Seq[(String, FiniteDuration)](("a", 1.second), ("b", 1.second))
     val lock = new Object()
@@ -28,4 +28,4 @@ class WebsocketIOTest extends FunSuite {
     }
     assert(ids.next == 4)
   }*/
-}
+

@@ -21,7 +21,7 @@ Supported entities and relative services:
 -   [x] BinarySensor
 -   [x] InputBoolean
 -   [x] InputDateTime
--   [ ] InputText
+-   [x] InputText
 -   [ ] Sun
 -   [ ] Weather
 -   [ ] Person
@@ -100,7 +100,7 @@ This approach is easier and cleaner:
 
 ### Handle complex automation tasks with Signals
 A channel can be used to trigger a delayed event in order to handle timed automations.
-```
+```scala
 val channel = hass.channel("my automation channel")
 my_switch.onState {
     case (On, _, _) => channel.signal("Do something", 5.seconds)

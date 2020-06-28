@@ -2,7 +2,7 @@ package hass.unmarshaller
 
 import hass.model.MetaDomain
 import hass.model.Types.{DomainType, ServiceType}
-import hass.model.entity.{InputBoolean, InputDateTime, Light, Switch}
+import hass.model.entity.{InputBoolean, InputDateTime, InputText, Light, Switch}
 import hass.model.service._
 import hass.model.state.ground.{TimeOrDate, TurnAction}
 import hass.unmarshaller.CommonUnmarshaller._
@@ -18,6 +18,7 @@ object ServiceUnmarshaller extends JsonUnmarshaller[Service] {
     switchTurn,
     inputBooleanTurn,
     inputDatetimeSet,
+    inputTextSet,
     unknown)
 
   def lightTurn: JsonUnmarshaller[LightTurnService] =
@@ -34,6 +35,12 @@ object ServiceUnmarshaller extends JsonUnmarshaller[Service] {
          entityIds <- strOrStrSeq("entity_id")(serviceData);
          timeOrDate <- extract[TimeOrDate].apply(serviceData))
       yield InputDateTimeSetService(entityIds, timeOrDate)
+
+  def inputTextSet: JsonUnmarshaller[InputTextSetService] = data =>
+    for ((InputText.domain, InputTextSetService.service, serviceData) <- defaultInfo(data);
+         entityIds <- strOrStrSeq("entity_id")(serviceData);
+         text <- str("value")(serviceData))
+      yield InputTextSetService(entityIds, text)
 
   def unknown: JsonUnmarshaller[Service] =
     defaultInfo.map { case (domain, service, serviceData) => UnknownService(domain, service, serviceData) }
