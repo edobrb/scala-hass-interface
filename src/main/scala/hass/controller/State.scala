@@ -90,6 +90,9 @@ case class State(entitiesStates: Map[EntityId, EntityState[_]],
 
   private def digestEvent(json: JsValue): State =
     EventUnmarshaller(json) match {
+      case Some(event @ StateChangedEvent(entityId, _, newState, _, _)) =>
+        updateEntitiesStates(entityId, newState).
+          addPendingEventNotification(event)
       case Some(event) => addPendingEventNotification(event)
       case None => log err "Malformed event: " + json; this
     }

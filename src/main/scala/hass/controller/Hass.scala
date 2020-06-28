@@ -94,10 +94,10 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
   }
 
   private def sendMessage(msg: Message): Unit =
-    outputPipe.collect { case pipe => pipe.push(msg) }
+    outputPipe.foreach { pipe => pipe.push(msg) }
 
-  def stateOf[E <: EntityState[_]](entityId: String): Option[E] =
-    state.entitiesStates.get(entityId).map(_.asInstanceOf[EntityState[E]].state)
+  def stateOf[S, E <: EntityState[S]](entityId: String): Option[E] =
+    state.entitiesStates.get(entityId).map(_.asInstanceOf[E])
 
   def onEvent(f: PartialFunction[Event, Unit]): Unit = addObserver(f)
 
@@ -139,7 +139,7 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
   def onClose(f: () => Unit): Unit = onEvent { case ConnectionClosedEvent => f() }
 
   def close(): Unit = {
-    outputPipe.collect({ case value =>
+    outputPipe.foreach({ value =>
       log inf "Closing..."
       value.close()
       log inf "Closed."

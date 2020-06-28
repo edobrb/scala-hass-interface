@@ -29,7 +29,9 @@ abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass
       notifyObservers((newState.state, newState.lastChanged, newState))
   }
 
-  def state: Option[E] = hass.stateOf[E](entityId)
+  def state: Option[E] = hass.stateOf[S, E](entityId)
+
+  def rawState: Option[S] = state.map(_.state)
 
   def onState(f: PartialFunction[(S, DateTime, E), Unit]): Unit = addObserver(f)
 }
