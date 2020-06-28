@@ -15,3 +15,5 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.1
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
+
+libraryDependencies += "org.scalaz" %% "scalaz-concurrent" % "7.2.30"
