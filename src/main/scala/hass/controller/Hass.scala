@@ -72,10 +72,10 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
   private def ping(): Unit =
     pingExecutor.execute(() => {
       Try(Thread.sleep(1000))
-      Try(Await.result(send(id => "{\"id\":" + id + ",\"type\":\"ping\"}"), 2.seconds)) match {
+      Try(Await.result(send(id => "{\"id\":" + id + ",\"type\":\"ping\"}"), 10.seconds)) match {
         case Success(Result(true, _)) => ping()
         case Failure(_) | Success(Result(false, _)) =>
-          log err "Not received pong response in 2 seconds!"
+          log err "Not received pong response in 10 seconds!"
           connect()
       }
     })
