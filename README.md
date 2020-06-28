@@ -21,6 +21,7 @@ Supported entities and relative services:
 -   [x] BinarySensor
 -   [x] InputBoolean
 -   [x] InputDateTime
+-   [ ] InputText
 -   [ ] Sun
 -   [ ] Weather
 -   [ ] Person
@@ -95,4 +96,21 @@ This approach is easier and cleaner:
   val my_other_light = Light() //will bound to light.my_other_light entity
   val light_group = LightGroup(my_light, my_other_light)
   light_group.toggle()
+```
+
+### Handle complex automation tasks with Signals
+A channel can be used to trigger a delayed event in order to handle timed automations.
+```
+val channel = hass.channel("my automation channel")
+my_switch.onState {
+    case (On, _, _) => channel.signal("Do something", 5.seconds)
+    case (Off, _, _) => channel.reset() //cancel all pending signals
+}
+channel.onSignal {
+case "Do something" => 
+  //do something
+  channel.signal((3, "Continue"), 10.seconds)
+case (number:Int, "Continue") => 
+  //do something else
+}
 ```
