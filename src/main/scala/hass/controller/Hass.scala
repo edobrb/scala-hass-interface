@@ -13,7 +13,7 @@ import utils.{ConsoleLogger, IdDispatcher, Logger}
 
 import scala.compat.java8.FutureConverters.toScala
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 object Hass {
@@ -27,7 +27,7 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
   private var outputPipe: Option[OutputPipe] = None
   private val transformExecutor: ExecutorService = Executors.newSingleThreadExecutor()
   private val pingExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-  private val connectionExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+  private val connectionExecutor: ExecutorService = Executors.newCachedThreadPool()
   private val inputPipe: InputPipe = {
     case Success(value) =>
       transformAndVent(_.digest(value))
@@ -44,27 +44,34 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
 
   transformExecutor.execute(() => Thread.currentThread.setName("transform-thread"))
   pingExecutor.execute(() => Thread.currentThread.setName("ping-thread"))
-  connectionExecutor.execute(() => Thread.currentThread.setName("connection-thread"))
+  connectionExecutor.execute(() => Thread.currentThread.setName("connection-thread")) //TODO: not working
 
   connect()
 
   onConnection(ping)
 
-  private def connect(): Unit =
-    connectionExecutor.execute(() => {
+  private def connect(): Unit = connectionExecutor.execute(() =>{
+    val f = Future {
       close()
       log inf "Connecting..."
-      io(inputPipe) match {
-        case Some(value) =>
-          transform(_.clear)
-          log inf "Connected."
-          outputPipe = Some(value)
-        case None =>
-          log err "Error while opening connecting. Will retry..."
-          notifyObservers(ConnectionClosedEvent)
-          connect()
-      }
-    })
+      io(inputPipe)
+    }(ExecutionContext.fromExecutor(connectionExecutor))
+
+    Try(Await.result(f, 10.seconds)) match {
+      case Success(Some(value)) =>
+        transform(_.clear)
+        log inf "Connected."
+        outputPipe = Some(value)
+      case Failure(_) =>
+        log err "Can't connect in 10 seconds! Will retry..."
+        notifyObservers(ConnectionClosedEvent)
+        connect()
+      case Success(None) =>
+        log err "Error while opening connection. Will retry..."
+        notifyObservers(ConnectionClosedEvent)
+        connect()
+    }
+  })
 
   private def ping(): Unit =
     pingExecutor.execute(() => {
