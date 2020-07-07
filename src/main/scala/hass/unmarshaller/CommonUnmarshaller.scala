@@ -61,5 +61,5 @@ object CommonUnmarshaller {
     }
 
   def first[I, O](parsers: Seq[I => Option[O]]): Unmarshaller[I, O] = input =>
-    (for (parser <- parsers; result <- parser(input)) yield result).headOption
+    (for (parser <- parsers.toStream; result <- parser(input)) yield result).headOption
 }

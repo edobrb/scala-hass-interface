@@ -16,8 +16,10 @@ object EventUnmarshaller extends JsonUnmarshaller[Event] {
 
   def unknown: JsonUnmarshaller[UnknownEvent] = data =>
     for (event <- extractEvent(data);
+         eventType <- str("event_type")(event);
+         payload <- json("data")(event);
          (origin, timeFired) <- originAndTimeFired(event))
-      yield UnknownEvent(data, timeFired, origin)
+      yield UnknownEvent(eventType, payload, timeFired, origin, data)
 
   def serviceCall: JsonUnmarshaller[ServiceCallEvent] = data =>
     for (event <- extractEvent(data);

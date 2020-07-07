@@ -44,7 +44,7 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
 
   transformExecutor.execute(() => Thread.currentThread.setName("transform-thread"))
   pingExecutor.execute(() => Thread.currentThread.setName("ping-thread"))
-  connectionExecutor.execute(() => Thread.currentThread.setName("connection-thread")) //TODO: not working
+  connectionExecutor.execute(() => Thread.currentThread.setName("connection-thread"))
 
   connect()
 
@@ -52,6 +52,7 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
 
   private def connect(): Unit = connectionExecutor.execute(() =>{
     val f = Future {
+      Thread.currentThread.setName("connection-thread") //TODO: avoid this
       close()
       log inf "Connecting..."
       io(inputPipe)
