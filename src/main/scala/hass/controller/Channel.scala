@@ -28,9 +28,9 @@ object Channel {
     private val runIds: IdDispatcher = IdDispatcher(1)
 
     override def signal(value: Any, delay: FiniteDuration): Unit = {
-      val runId = runIds.current
-      Task.schedule(runIds.synchronized {
-        if (runId == runIds.current) {
+      val runId = runIds.peekNext
+      Task.schedule({
+        if (runId == runIds.peekNext) {
           notifyObservers(value)
         }
       }, delay).unsafePerformAsync {

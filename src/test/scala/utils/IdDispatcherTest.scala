@@ -4,10 +4,11 @@ import org.scalatest._
 class IdDispatcherTest extends FunSuite {
   test("Id Dispatcher test 1") {
     val ids = IdDispatcher(1)
-    assert(ids.current == 1)
+    assert(ids.peekNext == 1)
     assert(ids.next == 1)
+    assert(ids.peekNext == 2)
     assert(ids.next == 2)
-    assert(ids.current == 2)
+    assert(ids.peekNext == 3)
     assert(ids.next == 3)
     assert(ids.next == 4)
   }
