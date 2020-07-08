@@ -29,7 +29,7 @@ object Channel {
 
     override def signal(value: Any, delay: FiniteDuration): Unit = {
       val runId = runIds.current
-      Task.schedule({
+      Task.schedule(runIds.synchronized {
         if (runId == runIds.current) {
           notifyObservers(value)
         }
