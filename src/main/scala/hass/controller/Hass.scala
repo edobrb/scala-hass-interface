@@ -7,9 +7,7 @@ import hass.model.common.Observable
 import hass.model.event.{ConnectionClosedEvent, ConnectionReadyEvent, Event, StateChangedEvent}
 import hass.model.service.{Result, Service}
 import hass.model.state.EntityState
-import scalaz.-\/
-import scalaz.concurrent.Task
-import utils.{ConsoleLogger, IdDispatcher, Logger}
+import utils.{ConsoleLogger, Logger}
 
 import scala.compat.java8.FutureConverters.toScala
 import scala.concurrent.duration._
@@ -21,7 +19,7 @@ object Hass {
     new Hass(IOPipe.websocket(s"ws://$host/api/websocket"), token, log)
 }
 
-class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
+class Hass(io: IOPipe, token: String, val log: Logger) extends Observable[Event] {
 
   private var state: State = State.empty(token, log)
   private var outputPipe: Option[OutputPipe] = None
@@ -111,35 +109,6 @@ class Hass(io: IOPipe, token: String, log: Logger) extends Observable[Event] {
 
   def onStateChange(f: PartialFunction[EntityState[_], Unit]): Unit = onEvent {
     case StateChangedEvent(_, _, newState, _, _) if f.isDefinedAt(newState) => f(newState)
-  }
-
-  trait Channel {
-    def signal(value: Any, fromNow: FiniteDuration)
-
-    def reset(): Unit
-
-    def onSignal(f: PartialFunction[Any, Unit]): Unit
-  }
-
-
-  def channel(name: String): Channel = new Channel with Observable[Any] {
-    private val runIds: IdDispatcher = IdDispatcher(1)
-
-    override def signal(value: Any, delay: FiniteDuration): Unit = {
-      val runId = runIds.current
-      Task.schedule({
-        if (runId == runIds.current) {
-          notifyObservers(value)
-        }
-      }, delay).unsafePerformAsync {
-        case -\/(a) => log.err("[CHANNEL " + name + "]: " + a.getMessage)
-        case _ =>
-      }
-    }
-
-    override def reset(): Unit = runIds.next
-
-    override def onSignal(f: PartialFunction[Any, Unit]): Unit = addObserver(f)
   }
 
   def onConnection(f: () => Unit): Unit = onEvent { case ConnectionReadyEvent => f() }
