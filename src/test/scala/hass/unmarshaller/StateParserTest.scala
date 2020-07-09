@@ -26,7 +26,7 @@ class StateParserTest extends FunSuite {
       case Some(s: LightState) =>
         assert(s.entityName == "bed_light")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
-        assert(s.state == On)
+        assert(s.value == On)
         assert(s.rgb.exists { case (254, 208, 0) => true; case _ => false })
         assert(s.colorTemp.exists { case 380 => true; case _ => false })
         assert(s.attribute[Int]("supported_features").exists { case 147 => true; case _ => false })
@@ -62,7 +62,7 @@ class StateParserTest extends FunSuite {
       case Some(s: SwitchState) =>
         assert(s.entityName == "garage_switch")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
-        assert(s.state == Off)
+        assert(s.value == Off)
         assert(s.attribute[Int]("some_random_attribute").isEmpty)
         assert(s.friendlyName.exists { case "Garage Switch" => true; case _ => false })
         assert(s.lastUpdated.getMillis - new DateTime(2016, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
@@ -71,7 +71,7 @@ class StateParserTest extends FunSuite {
   }
   test("Parse switch state 2") {
     StateUnmarshaller(switchState2) match {
-      case Some(s: SwitchState) => assert(s.state == Unavailable)
+      case Some(s: SwitchState) => assert(s.value == Unavailable)
       case _ => fail()
     }
   }
@@ -81,7 +81,7 @@ class StateParserTest extends FunSuite {
         assert(s.entityName == "some_name")
         assert(s.entityId == "some_domain.some_name")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
-        assert(s.state == "unavailable")
+        assert(s.value == "unavailable")
         assert(s.attribute[Int]("some_random_attribute").isEmpty)
         assert(s.lastUpdated.getMillis - new DateTime(2016, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
       case _ => fail()
@@ -99,7 +99,7 @@ class StateParserTest extends FunSuite {
         assert(s.entityName == "date_and_time")
         assert(s.entityId == "input_datetime.date_and_time")
         assert(s.lastChanged.getMillis - new DateTime(2015, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
-        assert(s.state == DateAndTime(Date(2020, 12, 25), Time(13, 56, 13)))
+        assert(s.value == DateAndTime(Date(2020, 12, 25), Time(13, 56, 13)))
         assert(s.lastUpdated.getMillis - new DateTime(2016, 11, 26, 1, 37, 24, DateTimeZone.UTC).getMillis < 1000)
       case _ => fail()
     }

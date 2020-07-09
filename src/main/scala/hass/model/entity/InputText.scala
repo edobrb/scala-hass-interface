@@ -25,7 +25,7 @@ case class InputText(entityName: String)(implicit val hass: Hass)
   }
 
   def append(text: String): Future[Result] = {
-    rawState match {
+    value match {
       case Some(value) => set(value + text)
       case None => set(text)
     }

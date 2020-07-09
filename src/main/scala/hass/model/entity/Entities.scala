@@ -1,6 +1,7 @@
 package hass.model.entity
 
 
+import com.github.nscala_time.time.Imports.DateTime
 import hass.controller.Hass
 import hass.model.MetaDomain
 import hass.model.common.Observable
@@ -26,12 +27,16 @@ abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass
 
   hass onEvent {
     case StateChangedEvent(id, _, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entityId =>
-      notifyObservers((newState.state, newState.lastChanged, newState))
+      notifyObservers((newState.value, newState.lastChanged, newState))
   }
 
   def state: Option[E] = hass.stateOf[S, E](entityId)
 
-  def rawState: Option[S] = state.map(_.state)
+  def value: Option[S] = state.map(_.value)
+
+  def lastChanged: Option[DateTime] = state.map(_.lastChanged)
+
+  def lastUpdated: Option[DateTime] = state.map(_.lastUpdated)
 
   def onState(f: PartialFunction[(S, DateTime, E), Unit]): Unit = addObserver(f)
 }

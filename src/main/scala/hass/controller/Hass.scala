@@ -28,17 +28,11 @@ class Hass(io: IOPipe, token: String, val log: Logger) extends Observable[Event]
   private val connectionExecutor: ExecutorService = Executors.newCachedThreadPool()
   private val inputPipe: InputPipe = {
     case Success(value) =>
-      transformAndVent(_.digest(value))
+      transform(_.digest(value))
     case Failure(exception) =>
       log err "Connection error: " + exception.getMessage
   }
-  private val ventState: State => State = state => {
-    val (notifications, state1) = state.extractPendingEvents()
-    val (outputs, state2) = state1.extractPendingOutputs()
-    notifications.foreach(notifyObservers)
-    outputs.foreach(sendMessage)
-    state2
-  }
+
 
   transformExecutor.execute(() => Thread.currentThread.setName("transform-thread"))
   pingExecutor.execute(() => Thread.currentThread.setName("ping-thread"))
@@ -83,17 +77,24 @@ class Hass(io: IOPipe, token: String, val log: Logger) extends Observable[Event]
       }
     })
 
-  private def transform(t: State => State): Unit =
-    transformExecutor.execute(() => synchronized(state = t(state)))
+  private def ventState(state: State): State = {
+    val (notifications, state1) = state.extractPendingEvents()
+    val (outputs, state2) = state1.extractPendingOutputs()
+    notifications.foreach(notifyObservers)
+    outputs.foreach(sendMessage)
+    state2
+  }
 
-  private def transformAndVent(t: State => State): Unit = transform(t.andThen(ventState))
-
-  def call(service: Service): Future[Result] =
-    send(id => service.materialize(id).toString)
+  private def transform(t: State => State): Unit = {
+    transformExecutor.execute(() => synchronized {
+      state = t(state) //need to be two statements so the states is already updated when calling observers
+      state = ventState(state)
+    })
+  }
 
   private def send(f: ID => Message): Future[Result] = {
     val future = new CompletableFuture[Result]
-    transformAndVent(_.generateRequest(f, {
+    transform(_.generateRequest(f, {
       case (state, result) => future.complete(result); state
     }))
     toScala(future)
@@ -101,6 +102,9 @@ class Hass(io: IOPipe, token: String, val log: Logger) extends Observable[Event]
 
   private def sendMessage(msg: Message): Unit =
     outputPipe.foreach { pipe => pipe.push(msg) }
+
+  def call(service: Service): Future[Result] =
+    send(id => service.materialize(id).toString)
 
   def stateOf[S, E <: EntityState[S]](entityId: String): Option[E] =
     state.entitiesStates.get(entityId).map(_.asInstanceOf[E])
