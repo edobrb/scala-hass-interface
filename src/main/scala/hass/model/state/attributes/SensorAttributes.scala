@@ -1,9 +1,5 @@
 package hass.model.state.attributes
-
 import com.github.nscala_time.time.Imports.DateTime
-import hass.model.entity.{Sensor, StatefulEntity}
-import hass.model.state.ground.TurnState
-import play.api.libs.json.JsObject
 
 import scala.util.Try
 

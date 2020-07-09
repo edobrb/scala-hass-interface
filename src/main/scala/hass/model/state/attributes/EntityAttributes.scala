@@ -4,6 +4,7 @@ import play.api.libs.json.{JsObject, Reads}
 
 import scala.util.Try
 
+
 trait EntityAttributes {
   def attributes: Option[JsObject]
 

@@ -1,5 +1,6 @@
 package hass.model.state.attributes
 
+
 trait LightAttributes extends TurnableEntityAttributes {
 
   def transition: Option[Int] = attribute[Int]("transition")

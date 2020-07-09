@@ -1,9 +1,5 @@
 package hass.model.state.attributes
 
-import hass.model.entity.StatefulEntity
-import play.api.libs.json.Reads
-
-
 
 trait InputTextAttributes extends StatefulEntityAttributes[String] {
 
