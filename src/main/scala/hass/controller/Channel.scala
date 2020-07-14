@@ -5,6 +5,7 @@ import scalaz.-\/
 import scalaz.concurrent.Task
 import utils.IdDispatcher
 
+import scala.annotation.StaticAnnotation
 import scala.collection.mutable.{Map => MutableMap}
 import scala.concurrent.duration.{FiniteDuration, _}
 
@@ -44,7 +45,7 @@ object Channel {
     override def onSignal(f: PartialFunction[Any, Unit]): Unit = addObserver(f)
   }
 }
-
+case class Asd(channel: Channel) extends StaticAnnotation
 trait Channel {
   def signal(value: Any, fromNow: FiniteDuration): Unit
 
@@ -53,6 +54,8 @@ trait Channel {
   def reset(): Unit
 
   def onSignal(f: PartialFunction[Any, Unit]): Unit
+
+  def onSignal2(f: Channel => PartialFunction[Any, Unit]): Unit = onSignal(f(this))
 }
 
 
