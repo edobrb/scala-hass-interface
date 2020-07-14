@@ -45,7 +45,7 @@ object Channel {
     override def onSignal(f: PartialFunction[Any, Unit]): Unit = addObserver(f)
   }
 }
-case class Asd(channel: Channel) extends StaticAnnotation
+
 trait Channel {
   def signal(value: Any, fromNow: FiniteDuration): Unit
 
@@ -55,7 +55,7 @@ trait Channel {
 
   def onSignal(f: PartialFunction[Any, Unit]): Unit
 
-  def onSignal2(f: Channel => PartialFunction[Any, Unit]): Unit = onSignal(f(this))
+  def onSignal(f: Channel => PartialFunction[Any, Unit]): Unit = onSignal(f(this))
 }
 
 
