@@ -77,18 +77,14 @@ class Hass(io: IOPipe, token: String, val log: Logger) extends Observable[Event]
       }
     })
 
-  private def ventState(state: State): State = {
-    val (notifications, state1) = state.extractPendingEvents()
-    val (outputs, state2) = state1.extractPendingOutputs()
-    notifications.foreach(notifyObservers)
-    outputs.foreach(sendMessage)
-    state2
-  }
-
   private def transform(t: State => State): Unit = {
     transformExecutor.execute(() => synchronized {
       state = t(state) //need to be two statements so the states is already updated when calling observers
-      state = ventState(state)
+      val (notifications, state1) = state.extractPendingEvents()
+      val (outputs, state2) = state1.extractPendingOutputs()
+      state = state2
+      notifications.foreach(notifyObservers)
+      outputs.foreach(sendMessage)
     })
   }
 
