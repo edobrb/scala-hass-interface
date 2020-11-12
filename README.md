@@ -22,7 +22,7 @@ Supported entities and relative services:
 -   [x] InputBoolean
 -   [x] InputDateTime
 -   [x] InputText
--   [ ] Sun
+-   [x] Sun
 -   [ ] Weather
 -   [ ] Person
 -   [ ] Automation

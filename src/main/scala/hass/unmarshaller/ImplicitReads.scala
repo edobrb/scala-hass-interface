@@ -75,4 +75,10 @@ object ImplicitReads {
     case JsString("unavailable") => JsSuccess(Unavailable)
     case _ => JsError("Invalid TurnState format")
   }
+
+  implicit val horizon: Reads[Horizon] = {
+    case JsString("above_horizon") => JsSuccess(AboveHorizon)
+    case JsString("below_horizon") => JsSuccess(BelowHorizon)
+    case _ => JsError("Invalid Horizon format")
+  }
 }

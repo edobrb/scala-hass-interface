@@ -19,6 +19,7 @@ object StateUnmarshaller extends JsonUnmarshaller[EntityState[_]] {
     inputBoolean,
     inputDateTime,
     inputText,
+    sun,
     unknown)
 
   def switch: JsonUnmarshaller[SwitchState] =
@@ -41,6 +42,9 @@ object StateUnmarshaller extends JsonUnmarshaller[EntityState[_]] {
 
   def inputText:JsonUnmarshaller[InputTextState] =
     expected(InputText.domain, InputTextState.apply)
+
+  def sun: JsonUnmarshaller[SunState] =
+    expected(Sun.domain, SunState.apply)
 
   def unknown: JsonUnmarshaller[UnknownEntityState] = data =>
     for ((domain, entityName, state, lastChanged, lastUpdated, attributes) <- genericFromState[String](implicitly[Reads[String]])(data))

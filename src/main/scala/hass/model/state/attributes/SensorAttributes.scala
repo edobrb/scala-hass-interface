@@ -12,6 +12,6 @@ trait SensorAttributes extends StatefulEntityAttributes[String] {
 
   def booleanValue: Option[Boolean] = tryState(_.toBoolean)
 
-  private def tryState[T](f: String => T): Option[T] = Try(state.map(_.value).map(f)).toOption.flatten
+  def tryState[T](f: String => T): Option[T] = Try(state.map(_.value).map(f)).toOption.flatten
 }
 

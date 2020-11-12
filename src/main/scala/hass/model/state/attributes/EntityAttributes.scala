@@ -13,5 +13,7 @@ trait EntityAttributes {
          value <- attrs.fields.collectFirst { case (`name`, value) => value };
          result <- Try(value.as[T]).toOption) yield result
 
+  def tryMapAttribute[T](name: String, f: String => T): Option[T] = Try(attribute[String](name).map(f)).toOption.flatten
+
   def friendlyName: Option[String] = attribute[String]("friendly_name")
 }
