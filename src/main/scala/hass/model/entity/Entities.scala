@@ -23,11 +23,11 @@ sealed trait Entity extends MetaDomain {
 
 case class UnknownEntity(entityName: String, override val domain: String) extends Entity
 
-abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass: Hass) extends Entity with Observable[(S, DateTime, E)] {
+abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass: Hass) extends Entity with Observable[(DateTime, E, E)] {
 
   hass onEvent {
-    case StateChangedEvent(id, _, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entityId =>
-      notifyObservers((newState.value, newState.lastChanged, newState))
+    case StateChangedEvent(id, oldState: E, newState: E, _, _) if implicitly[ClassTag[E]].runtimeClass.isInstance(newState) && id == entityId =>
+      notifyObservers((newState.lastChanged, oldState, newState))
   }
 
   def state: Option[E] = hass.stateOf[S, E](entityId)
@@ -38,7 +38,19 @@ abstract class StatefulEntity[S, E <: EntityState[S] : ClassTag]()(implicit hass
 
   def lastUpdated: Option[DateTime] = state.map(_.lastUpdated)
 
-  def onState(f: PartialFunction[(S, DateTime, E), Unit]): Unit = addObserver(f)
+  def onValue(f: PartialFunction[(DateTime, S), Unit]): Unit = addObserver({
+    case (time, _, newState) if f.isDefinedAt((time, newState.value)) => f((time, newState.value))
+  })
+
+  def onValueChange(f: PartialFunction[(DateTime, S, S), Unit]): Unit = addObserver({
+    case (time, oldState, newState) if f.isDefinedAt((time, oldState.value, newState.value)) => f((time, oldState.value, newState.value))
+  })
+
+  def onState(f: PartialFunction[(DateTime, E), Unit]): Unit = addObserver({
+    case (time, _, newState) if f.isDefinedAt((time, newState)) => f((time, newState))
+  })
+
+  def onStateChange(f: PartialFunction[(DateTime, E, E), Unit]): Unit = addObserver(f)
 }
 
 trait Turnable[S <: TurnService] {
