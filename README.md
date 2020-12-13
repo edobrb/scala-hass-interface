@@ -26,7 +26,7 @@ Supported entities and relative services:
 -   [ ] Weather
 -   [x] Person
 -   [ ] Automation
--   [ ] Script
+-   [x] Script
 
 ## Usage
 

@@ -2,7 +2,7 @@ package hass.unmarshaller
 
 import hass.model.MetaDomain
 import hass.model.Types.{DomainType, ServiceType}
-import hass.model.entity.{InputBoolean, InputDateTime, InputText, Light, Switch}
+import hass.model.entity.{InputBoolean, InputDateTime, InputText, Light, Script, Switch}
 import hass.model.service._
 import hass.model.state.ground.{TimeOrDate, TurnAction}
 import hass.unmarshaller.CommonUnmarshaller._
@@ -16,6 +16,7 @@ object ServiceUnmarshaller extends JsonUnmarshaller[Service] {
   def all: Seq[JsonUnmarshaller[Service]] = Seq[JsonUnmarshaller[Service]](
     lightTurn,
     switchTurn,
+    scriptTurn,
     inputBooleanTurn,
     inputDatetimeSet,
     inputTextSet,
@@ -26,6 +27,9 @@ object ServiceUnmarshaller extends JsonUnmarshaller[Service] {
 
   def switchTurn: JsonUnmarshaller[SwitchTurnService] =
     turn2(Switch, SwitchTurnService.apply)
+
+  def scriptTurn: JsonUnmarshaller[ScriptTurnService] =
+    turn2(Script, ScriptTurnService.apply)
 
   def inputBooleanTurn: JsonUnmarshaller[InputBooleanTurnService] =
     turn2(InputBoolean, InputBooleanTurnService.apply)
