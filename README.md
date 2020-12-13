@@ -24,7 +24,7 @@ Supported entities and relative services:
 -   [x] InputText
 -   [x] Sun
 -   [ ] Weather
--   [ ] Person
+-   [x] Person
 -   [ ] Automation
 -   [ ] Script
 
