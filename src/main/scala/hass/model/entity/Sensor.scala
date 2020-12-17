@@ -4,6 +4,7 @@ import hass.controller.Hass
 import hass.model.MetaDomain
 import hass.model.Types.DomainType
 import hass.model.state.SensorState
+import hass.model.state.attributes.SensorAttributes
 
 object Sensor extends MetaDomain {
   val domain: DomainType = "sensor"
@@ -12,4 +13,4 @@ object Sensor extends MetaDomain {
 }
 
 case class Sensor(entityName: String)(implicit hass: Hass)
-  extends StatefulEntity[String, SensorState]() with Sensor.Domain
+  extends StatefulEntity[String, SensorState]() with Sensor.Domain with SensorAttributes
