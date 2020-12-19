@@ -14,19 +14,19 @@ The library needs a Bearer Token in order to authenticate to your Home Assistant
 ## Features
 
 Supported entities and relative services:
- - [x] Light
- - [x] Switch
- - [x] Sensor
- - [ ] Template
- - [x] BinarySensor
- - [x] InputBoolean
- - [x] InputDateTime
- - [x] InputText
- - [x] Sun
- - [ ] Weather
- - [x] Person
- - [ ] Automation
- - [x] Script
+-   [x] Light
+-   [x] Switch
+-   [x] Sensor
+-   [ ] Template
+-   [x] BinarySensor
+-   [x] InputBoolean
+-   [x] InputDateTime
+-   [x] InputText
+-   [x] Sun
+-   [ ] Weather
+-   [x] Person
+-   [ ] Automation
+-   [x] Script
 
 ## Usage
 
