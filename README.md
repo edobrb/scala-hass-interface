@@ -14,20 +14,19 @@ The library needs a Bearer Token in order to authenticate to your Home Assistant
 ## Features
 
 Supported entities and relative services:
--   [x] Light
--   [x] Switch
--   [x] Sensor
--   [ ] Template
--   [x] BinarySensor
--   [x] InputBoolean
--   [x] InputDateTime
--   [x] InputText
--   [x] Sun
--   [ ] Weather
--   [x] Person
--   [ ] Automation
--   [x] Script
-
+ - [x] Light
+ - [x] Switch
+ - [x] Sensor
+ - [ ] Template
+ - [x] BinarySensor
+ - [x] InputBoolean
+ - [x] InputDateTime
+ - [x] InputText
+ - [x] Sun
+ - [ ] Weather
+ - [x] Person
+ - [ ] Automation
+ - [x] Script
 
 ## Usage
 
@@ -41,7 +40,6 @@ implicit val hass: Hass = Hass(
   "bearer token", 
   retryOnError = true) 
 ```
-
 
 ### Interact with hass by creating entities
 This approach is the easier and cleaner. You can bound any of the supported entities with an object that can handles all the required operations and listens for relevant events:

@@ -4,10 +4,9 @@ import hass.model.common.Observable
 import scalaz.-\/
 import scalaz.concurrent.Task
 import utils.IdDispatcher
-
-import scala.annotation.StaticAnnotation
 import scala.collection.mutable.{Map => MutableMap}
-import scala.concurrent.duration.{FiniteDuration, _}
+import scala.concurrent.duration._
+
 
 object Channel {
   private val channels: MutableMap[String, Channel] = MutableMap()
@@ -23,8 +22,6 @@ object Channel {
   }
 
   private def createNew(name: String)(implicit hass: Hass): Channel = new Channel with Observable[Any] {
-
-    import scala.concurrent.duration.FiniteDuration
 
     private val runIds: IdDispatcher = IdDispatcher(1)
 
